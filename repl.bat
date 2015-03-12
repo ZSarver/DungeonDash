@@ -1,0 +1,1 @@
+cabal exec -- ghci src/%~n1
