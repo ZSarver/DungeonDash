@@ -6,10 +6,11 @@ import FRP.Helm (Time)
 
 data Enemy = Enemy {chr :: Character}
 
+type Position = (Double,Double)
+
 data Character = Character 
-  { c :: Char
-  , x :: Double
-  , y :: Double
+  { char :: Char
+  , position :: Position
   }
   
 data Inputs = Inputs

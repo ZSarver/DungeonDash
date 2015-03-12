@@ -13,8 +13,8 @@ render w' h' g = centeredCollage w' h' (background : drawCharacter red p : fmap 
   GameState p e _ = g
   (w,h) = (fromIntegral w', fromIntegral h')
   drawSymbol a c = toForm . text . color c . toText $ [a]
-  drawCharacter col c = let (Character a x y) = toCharacter c in move (x,y) (drawSymbol a col)
-  background =  filled black $ rect 800 600
+  drawCharacter col c = let (Character a p) = toCharacter c in move p (drawSymbol a col)
+  background =  filled black $ rect w h
   
 class ToCharacter a where
   toCharacter :: a -> Character
@@ -24,6 +24,3 @@ instance ToCharacter Character where
   
 instance ToCharacter Enemy where
   toCharacter = chr
-
-class ToForm a where
-  toForm :: a -> Form
