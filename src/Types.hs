@@ -5,6 +5,7 @@ import FRP.Helm.Keyboard (Key)
 import FRP.Helm (Time)
 
 data Enemy = Enemy {chr :: Character}
+data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone
 
 type Position = (Double,Double)
 
