@@ -20,13 +20,9 @@ data Inputs = Inputs
   , kbin :: [Key]
   }
 
-data GameState = GameState
-  { player :: Character
-  , enemies :: [Enemy]
-  , spawnTimer :: !Time
-  }
+data GameState = GameState Character [Enemy]
   
-class Update a where
+{-class Update a where
   update :: Inputs -> a -> a
 
 instance Update Enemy where
@@ -40,3 +36,4 @@ instance Update GameState where
     { enemies = fmap (update i) enemies
     , spawnTimer = update i spawnTimer
     }
+-}

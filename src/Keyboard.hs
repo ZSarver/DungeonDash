@@ -7,6 +7,9 @@ import Data.Traversable (traverse)
 defaultKeyDownEvents :: Signal [Key]
 defaultKeyDownEvents = keyDownEvents [UpKey,DownKey,LeftKey,RightKey]
 
+debugKeyDownEvents :: Signal [Key]
+debugKeyDownEvents = keyDownEvents [SpaceKey]
+
 keyDownEvents :: [Key] -> Signal [Key]
 keyDownEvents ks = fmap concat (traverse keyDownEvents1 ks)
 

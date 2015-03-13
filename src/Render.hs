@@ -8,9 +8,9 @@ import FRP.Helm (toForm, move, rect, centeredCollage, filled, Element)
 
 
 render :: Int -> Int -> GameState -> Element
-render w' h' g = centeredCollage w' h' (background : drawCharacter red p : fmap (drawCharacter green) e)
+render w' h' g = centeredCollage w' h' (background : drawCharacter red p : fmap (drawCharacter grey) e)
   where
-  GameState p e _ = g
+  GameState p e = g
   (w,h) = (fromIntegral w', fromIntegral h')
   drawSymbol a c = toForm . text . color c . toText $ [a]
   drawCharacter col c = let (Character a p) = toCharacter c in move p (drawSymbol a col)
