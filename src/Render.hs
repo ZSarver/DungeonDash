@@ -1,6 +1,7 @@
 module Render where
 
 import Types
+import Vector
 
 import FRP.Helm.Color
 import FRP.Helm.Text (text, color, toText)
@@ -13,7 +14,7 @@ render w' h' g = centeredCollage w' h' (background : drawCharacter red p : fmap 
   GameState p e = g
   (w,h) = (fromIntegral w', fromIntegral h')
   drawSymbol a c = toForm . text . color c . toText $ [a]
-  drawCharacter col c = let (Character a p) = toCharacter c in move p (drawSymbol a col)
+  drawCharacter col c = let (Character a p) = toCharacter c in move (toTuple p) (drawSymbol a col)
   background =  filled black $ rect w h
   
 class ToCharacter a where

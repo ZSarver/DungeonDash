@@ -1,13 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 module Types where
 
+import Vector
+
 import FRP.Helm.Keyboard (Key)
-import FRP.Helm (Time)
+
+type Time = Double
 
 data Enemy = Enemy {chr :: Character}
 data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone
-
-type Position = (Double,Double)
 
 data Character = Character 
   { char :: Char

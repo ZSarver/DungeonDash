@@ -23,6 +23,8 @@ mask :: Signal a -> Signal b -> Signal b
 mask x y = maybe <~ (silence y) ~~ (pure id) ~~ yy
   where
     yy = maskAux x y
+unmask :: Signal a -> Signal b -> Signal b
+unmask = liftA2 $ flip const
 
 maskAux :: Signal a -> Signal b -> Signal (Maybe b)
 maskAux (Signal x') (Signal y') = Signal $ do
