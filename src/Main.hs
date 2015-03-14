@@ -11,8 +11,10 @@ import FRP.Helm.Time(fps)
 import FRP.Helm.Random (float)
 import FRP.Helm.Sample (value, Sample (..))
 import Data.Traversable (sequenceA)
-import FRP.Elerea.Param (effectful, transfer2, transfer,snapshot)
+import FRP.Elerea.Param (effectful, transfer2, transfer,snapshot,delay)
 import Data.IORef (newIORef, readIORef, modifyIORef, IORef)
+
+
 
 pc :: Signal Character
 pc = Character '@' <~ loop
@@ -60,36 +62,26 @@ getZone radius playerPos enemyPos =
 spawnClock :: Signal Time
 spawnClock = gameClockElapsed --or something. TODO
 
---foldp ::  (a -> b -> b) -> b -> Signal a -> Signal b
 enemies :: Signal [Enemy]
-enemies = sequenceA [enemy1,enemy2]
-{-enemies = fmap . sequenceA $ foldp f [] debugKeyDownEvents
-  where
-    f :: [Key] -> [Signal Enemy] -> [Signal Enemy]
-    f keylist enemylist = if SpaceKey `elem` keylist
-                          then undefined
-                          else enemylist
--}
+enemies = foldp3' evolveNmeList [nme0 (10,10),nme0 (15,-50)] gameClock loop (keyDownEvents [SpaceKey])
 
---simulationInit = return $ GameState <~ pc ~~ enemies
-{-
-    step time to@(t1,t2) from@(f1,f2) = 
-      let (v1,v2) = to `minus` from
-          d = distance from to
-          (u1,u2) = (v1 / d, v2 / d)
-          closer = from `plus` (speed * u1, speed * u2)
-      in  if d > goalDistance then closer else from-}
+evolveNmeList :: Time -> Position -> [Key] -> [Enemy] -> [Enemy]
+evolveNmeList delta p keys l = fmap (evolveNme delta p) l ++ newNmes
+  where
+  newNmes = if null keys then [] else [nme0 (100,100)]
+
+evolveNme :: Time -> Position -> Enemy -> Enemy
+evolveNme delta p nme = setNmePos nme newpos
+  where
+    newpos = chaseStep 0.02 20 delta p $ getNmePos nme
+
 getNmePos :: Enemy -> Position
 getNmePos (Enemy (Character _ pos)) = pos
 setNmePos :: Enemy -> Position  -> Enemy
 setNmePos (Enemy (Character c _)) pos = Enemy $ Character c pos
       
-nme0 (x,y) = (pure $ Enemy $ Character 'k' (x,y)) :: Sample Enemy
+nme0 (x,y) = Enemy $ Character 'k' (x,y)
 
-evolveNme :: a -> Sample Position -> Sample Time -> Sample Enemy -> Sample Enemy
-evolveNme _ p delta nme = setNmePos <$> nme <*> newpos
-  where
-    newpos = chaseStep <$> pure 0.02 <*> pure 20 <*> delta <*> p <*> fmap getNmePos nme
 
 chaseStep :: Double -> Double -> Time -> Position -> Position -> Position
 chaseStep speed goalDistance time target start  = 
@@ -100,34 +92,14 @@ chaseStep speed goalDistance time target start  =
     (u1,u2) = (time * v1 / d, time * v2 / d)
     closer = start `plus` (speed * u1, speed * u2)
 
+    
+numspaces = countIf (not.null) $ keyDownEvents [SpaceKey]
 gameClock = fps 30
 gameClockElapsed = foldp (+) 0 gameClock
 loop = let r= 50; z = 500 in fmap (\t -> (r * cos (t/z), r * sin (t/z))) gameClockElapsed
---simulation :: IO ( H.Signal (SignalGen Engine (Elerea.Signal (Sample Element)))
-simulation = Signal $ do
-  pos <- signalGen loop
-  dt <- signalGen gameClock
-  let player = (liftA2.liftA2) Character ((pure.pure) '@') pos
-  -- nme :: Position -> SignalGen e (Signal (Sample Enemy))
-  let nme (x,y) = transfer2 (nme0 (x,y)) evolveNme pos dt 
-  nmes <- sequence [nme (-20, 30)]
-  --let nmes' = fmap sequenceA . sequenceA $ nmes
-  spaceDown <- signalGen $ fmap (not.null) $ keyDownEvents [SpaceKey]
-  --  spawn :: a -> Sample Bool 
-  --   -> [SignalGen e (Signal (Sample Enemy))] 
-  --   -> [SignalGen e (Signal (Sample Enemy))]
-  let spawn _ b oldlist = case value b of 
-        True  -> (nme (30,60)):oldlist
-        False -> oldlist
-  -- nmeGen :: Signal [SignalGen e (Signal (Sample Enemy))]
-  nmeGen <- transfer [nme (30,60)] spawn spaceDown
-  -- nmeGen' :: [SignalGen e (Signal (Sample Enemy))]
-  nmeGen' <- snapshot nmeGen
-  -- nmeGen' :: [(Signal (Sample Enemy))]
-  nmeGen'' <- sequence nmeGen'
-  let nmes' = fmap sequenceA . sequenceA $ nmeGen''
-  return $ (liftA2.liftA2) GameState player nmes' -- :: Elerea.Signal (Sample GameState)
-  
+--simulation :: H.Signal (SignalGen Engine (Elerea.Signal (Sample Element)))
+simulation = GameState <~ pc ~~ enemies
+
   
 main = do
     run config $ render 800 600 <~ simulation
