@@ -14,7 +14,7 @@ debugKeyDownEvents :: Signal [Key]
 debugKeyDownEvents = keyDownEvents [SpaceKey]
 
 keyDownEvents :: [Key] -> Signal [Key]
-keyDownEvents ks = fmap concat (traverse clicks ks)
+keyDownEvents ks = fmap concat (traverse keyDownEvents1 ks)
 
 keyDownEvents1 :: Key -> Signal [Key]
 keyDownEvents1 k = Signal $ signalGen (isDown k) >>= transfer (Unchanged []) f
