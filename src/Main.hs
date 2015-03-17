@@ -73,13 +73,15 @@ display :: Enemies -> Player -> Element
 
 
 -}
+
 enemies :: Signal [Enemy]
 enemies = foldp3' evolveNmeList [] clock loop (keyDownEvents [SpaceKey])
   where
   clock = unmask (keyDownEvents [SpaceKey]) gameClock
-
-pc :: Signal Character
-pc = Character '@' <~ loop
+enemies' = fmap Enemies enemies
+  
+pc :: Signal Player
+pc = Player '@' <~ loop
 --pc = pure $ Character '@' (0,0)
 
 
@@ -104,11 +106,9 @@ gameClock = fps' 30
 gameClockElapsed = foldp (+) 0 gameClock
 loop :: Signal Vec2
 loop = let r= 50; z = 500 in fmap (\t -> (Vec2 (r * cos (t/z)) (r * sin (t/z)))) gameClockElapsed
---simulation :: H.Signal (SignalGen Engine (Elerea.Signal (Sample Element)))
-simulation = GameState <~ pc ~~ enemies
 
-  
+
 main = do
-    run config $ render 800 600 <~ simulation
+    run config $ render 800 600 <~ pc ~~ enemies'
   where
     config = defaultConfig { windowTitle = "Dungeon Dash!", windowPosition = (200,200) }

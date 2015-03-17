@@ -1,45 +1,35 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+
 module Types where
 
 import Vector
 
 import FRP.Helm.Keyboard (Key)
 
-class StepWith a z where
-  stepWith :: a -> z -> z
-
-class StepWith2 a b z where
-  stepWith2 :: a -> b -> z -> z
-
-class StepWith3 a b c z where
-  stepWith3 :: a -> b -> c -> z -> z
-
-instance (StepWith a z, StepWith b z) => StepWith2 a b z where
-  stepWith2 a b = stepWith b . stepWith a
-
-instance (StepWith2 a b z, StepWith c z) => StepWith3 a b c z where
-  stepWith3 a b c = stepWith c . stepWith2 a b
 
 type Time = Double
 
-data Enemy = Enemy {chr :: Character}
+data Enemies = Enemies {list :: [Enemy]}
+
+data Enemy = Enemy {echar :: Char, epos :: Position}
+
+data Player = Player {pchar :: Char, ppos :: Position}
+
 data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone
 
-data Character = Character 
-  { char :: Char
-  , position :: Position
-  }
-  
-data Inputs = Inputs
-  { delta :: Time
-  , randTick :: Float
-  , kbin :: [Key]
-  }
+class StepWith a z where
+  stepWith :: a -> z -> z
+class StepWith2 a b z where
+  stepWith2 :: a -> b -> z -> z
+class StepWith3 a b c z where
+  stepWith3 :: a -> b -> c -> z -> z
+instance (StepWith a z, StepWith b z) => StepWith2 a b z where
+  stepWith2 a b = stepWith b . stepWith a
+instance (StepWith2 a b z, StepWith c z) => StepWith3 a b c z where
+  stepWith3 a b c = stepWith c . stepWith2 a b
 
-data GameState = GameState Character [Enemy]
-  
 {-class Update a where
   update :: Inputs -> a -> a
 

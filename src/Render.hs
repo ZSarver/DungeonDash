@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Render where
 
 import Types
@@ -5,23 +6,28 @@ import Vector
 
 import FRP.Helm.Color
 import FRP.Helm.Text (text, color, toText)
-import FRP.Helm (toForm, move, rect, centeredCollage, filled, Element)
+import FRP.Helm (toForm, move, rect, centeredCollage, filled, Element, group, Form)
 
 
-render :: Int -> Int -> GameState -> Element
-render w' h' g = centeredCollage w' h' (background : drawCharacter red p : fmap (drawCharacter grey) e)
+render :: Int -> Int -> Player -> Enemies -> Element
+render w' h' p e = centeredCollage w' h' $ [background, drawEnemies e, drawPlayer p]
   where
-  GameState p e = g
   (w,h) = (fromIntegral w', fromIntegral h')
-  drawSymbol a c = toForm . text . color c . toText $ [a]
-  drawCharacter col c = let (Character a p) = toCharacter c in move (toTuple p) (drawSymbol a col)
   background =  filled black $ rect w h
+
   
-class ToCharacter a where
-  toCharacter :: a -> Character
+--  drawCharacter col c = let (Character a p) = toCharacter c in move (toTuple p) (drawSymbol a col)
   
-instance ToCharacter Character where
-  toCharacter = id
-  
-instance ToCharacter Enemy where
-  toCharacter = chr
+drawSymbol ::  Color -> Vec2 -> Char -> Form
+drawSymbol c v a = move (toTuple v) . toForm . text . color c . toText $ [a]
+
+
+
+drawEnemies :: Enemies -> Form
+drawEnemies = group . fmap drawEnemy . list
+
+drawEnemy :: Enemy -> Form
+drawEnemy Enemy{..} = drawSymbol grey epos echar
+
+drawPlayer :: Player -> Form
+drawPlayer Player{..} = drawSymbol white ppos pchar

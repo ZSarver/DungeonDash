@@ -15,11 +15,11 @@ evolveNme delta p nme = setNmePos nme newpos
     newpos = chaseStep 0.02 20 delta p $ getNmePos nme
 
 getNmePos :: Enemy -> Position
-getNmePos (Enemy (Character _ pos)) = pos
-setNmePos :: Enemy -> Position  -> Enemy
-setNmePos (Enemy (Character c _)) pos = Enemy $ Character c pos
+getNmePos (Enemy _ pos) = pos
+setNmePos :: Enemy -> Position -> Enemy
+setNmePos e pos = e{epos=pos}
       
-nme0 v = Enemy $ Character 'k' v
+nme0 v = Enemy 'k' v
 
 chaseStep :: Double -> Double -> Time -> Position -> Position -> Position
 chaseStep speed goalDistance time target start  = 
