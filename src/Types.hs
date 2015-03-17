@@ -22,9 +22,6 @@ instance (StepWith a z, StepWith b z) => StepWith2 a b z where
 instance (StepWith2 a b z, StepWith c z) => StepWith3 a b c z where
   stepWith3 a b c = stepWith c . stepWith2 a b
 
--- a -> z -> z
--- 
-
 type Time = Double
 
 data Enemy = Enemy {chr :: Character}

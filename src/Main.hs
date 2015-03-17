@@ -95,9 +95,12 @@ getZone radius playerPos enemyPos =
             (False,True)  -> DownZone
             (False,False) -> LeftZone
 
-    
 gameClock = fps' 30
-  where fps' k = const (second / k) <~ fps k
+  where 
+    f y (Changed x) = Changed y
+    f _ (Unchanged _) = Unchanged 0
+    fps' k = Signal $ (fmap.fmap) (f (second / k)) $ signalGen $ fps k
+
 gameClockElapsed = foldp (+) 0 gameClock
 loop :: Signal Vec2
 loop = let r= 50; z = 500 in fmap (\t -> (Vec2 (r * cos (t/z)) (r * sin (t/z)))) gameClockElapsed
