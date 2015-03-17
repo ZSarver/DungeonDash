@@ -1,1 +1,1 @@
-cabal exec -- ghci src/%~n1
+cabal exec -- ghci -i%CD%\src %1 %2 %3 %4 %5 %6 %7 %8 %9

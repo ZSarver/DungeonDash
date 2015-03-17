@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards #-}
-
 import Keyboard (defaultKeyDownEvents, keyDownEvents, Key( .. ))
 import Types
 import Render
