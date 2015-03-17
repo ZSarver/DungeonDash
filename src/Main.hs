@@ -91,16 +91,29 @@ keys = clockedKeyDownEvents gameClock [UpKey, DownKey, LeftKey, RightKey]
 gameClockElapsed = foldp (+) 0 gameClock
 loop :: Signal Vec2
 loop = let r= 50; z = 500 in fmap (\t -> (Vec2 (r * cos (t/z)) (r * sin (t/z)))) gameClockElapsed
-
+data Pack = Pack
+  { getEnemies :: Enemies
+  , getEvents :: Events
+  --, _player :: Player
+  }
 main = run config $ render 800 600 <~ pc ~~ enemies
   where
     config = defaultConfig { windowTitle = "Dungeon Dash!", windowPosition = (200,200) }
-    enemies = fmap fst linkup
-    events = fmap snd linkup
+    enemies = fmap getEnemies linkup
+    events = fmap getEvents linkup
     wrap = Signal . pure
     linkup = Signal $ mdo
+      -- The Naive version of this code would read
+      -- enemies = foldp3' enemiesStep enemiesInit gameClock pc events
+      -- events = lag gameClock eventsInit $ -- the lag is to prevent mutual dependency *within the same game tick*
+      --   foldp3' eventsStep eventsInit keys pc enemies
+      -- but the naive version breaks because of some niggle related to the recursion
+      -- but elerea's signals have a monadFix instance that handles the recursion fine
+      -- inside of an mdo block (like a do block, but with recursion)
+      -- So! To do the linkup we just state the relationship in terms of the "naked"
+      -- elerea signals and then wrap them back up.
       enemies' <- signalGen $ 
         foldp3' enemiesStep enemiesInit gameClock pc (wrap events')
       events' <- signalGen $ lag gameClock eventsInit $ 
         foldp3' eventsStep eventsInit keys pc (wrap enemies')
-      return $ (liftA2.liftA2) (,) enemies events
+      return $ (liftA2.liftA2) Pack enemies' events'
