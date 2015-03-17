@@ -10,11 +10,11 @@ eventsInit :: Events
 eventsInit = []
 
  -- TODO: this should become a function of Player if it starts to vary during the game
-zoneRadius = 20
+zoneRadius = 100
 
 getZone :: Double -> Position -> Position -> Zone
-getZone radius playerPos enemyPos = 
-  let d = distance playerPos enemyPos 
+getZone radius playerPos enemyPos = UpZone
+{-  let d = distance playerPos enemyPos 
       Vec2 v1 v2 = enemyPos `minus` playerPos
   in   if d > radius then OutZone
        else case (v1 - v2 > 0, v1 + v2 > 0  ) of
@@ -23,14 +23,15 @@ getZone radius playerPos enemyPos =
             (False,True)  -> DownZone
             (False,False) -> LeftZone
             (True,True)   -> RightZone
-
-eventsStep :: [Key] -> Player -> Enemies -> Events -> Events
-eventsStep keys Player{ppos=p} Enemies{list=elist} _ = if null keys then [] 
+-}
+eventsStep :: Time -> [Key] -> Player -> Enemies -> Events -> Events
+eventsStep _ keys Player{ppos=p} Enemies{list=elist} _ = if null keys then [] 
   else case head keys of
     UpKey    -> hit up
     DownKey  -> hit down
     LeftKey  -> hit left
     RightKey -> hit right
+    otherwise -> []
   where
   hit l = case l of
     []    -> []

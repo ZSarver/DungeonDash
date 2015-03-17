@@ -1,35 +1,35 @@
-module Keyboard (clockedKeyDownEvents, keyDownEvents, Key( .. )) 
+module Keyboard ( keyDownEvents, Key( .. )) 
 where
 
-import SignalUtils (mask)
+import FRP.Helm.Keyboard (Key (..))
+import FRP.Elerea.Param
+import Data.List (elemIndices)
+import Foreign (alloca, peekArray, peek, Word8, Ptr)
+import Foreign.C.Types
 
-import FRP.Helm.Keyboard (Key (..), isDown)
-import FRP.Helm.Signal (foldp, Signal (..))
-import FRP.Helm.Sample
-import Data.Traversable (traverse)
-import FRP.Elerea.Param (transfer)
 import Control.Applicative
+import Data.Traversable (sequenceA)
 
-keyDownEvents :: [Key] -> Signal [Key]
-keyDownEvents ks = fmap concat (traverse keyDownEvents1 ks)
+foreign import ccall unsafe "SDL_GetKeyboardState" sdlGetKeyState :: Ptr CInt -> IO (Ptr Word8)
 
-keyDownEvents1 :: Key -> Signal [Key]
-keyDownEvents1 k = Signal $ signalGen (isDown k) >>= transfer (Unchanged []) f
-  where 
-    f _ (Changed True) _ = Changed [k]
-    f _             _  _ = Unchanged []
-    
-clockedKeyDownEvents :: Signal a -> [Key] -> Signal [Key]
-clockedKeyDownEvents s ks = fmap concat $ traverse (clockedKeyDownEvents1 s) ks
+getKBState :: IO [Int]
+getKBState = alloca $ \numkeysPtr -> do
+  keysPtr <- sdlGetKeyState numkeysPtr
+  numkeys <- peek numkeysPtr
+  (map fromIntegral . elemIndices 1) <$> peekArray (fromIntegral numkeys) keysPtr
 
-clockedKeyDownEvents1 :: Signal a -> Key -> Signal [Key]
-clockedKeyDownEvents1 s k = fmap fst $ Signal $ 
-  signalGen (mask s $ isDown k) >>= -- b :: E.Signal (Sample Bool)
-  transfer (Unchanged ([],False)) f
+isDown :: Key -> SignalGen p (Signal Bool)
+isDown k = getDown >>= transfer True (\_ x _ -> x)
+  where getDown = effectful $ elem (fromEnum k) <$> getKBState
+
+keyDownEvents1 :: Key -> SignalGen p (Signal [Key])
+keyDownEvents1 k = (liftA2.liftA2) f (isDown k) (wasUp k)
   where
-    f _ down last = let 
-      d = value down
-      l = snd . value $ last 
-      in if d && (not l) 
-        then Changed   ([k],d) 
-        else Unchanged ( [],d)
+  f True True = [k]
+  f _ _ = []
+  wasUp k = isDown k >>= delay True . fmap not
+
+keyDownEvents :: [Key] -> SignalGen p (Signal [Key])
+keyDownEvents ks = do
+  k <- sequenceA $ fmap keyDownEvents1 ks
+  return $ fmap concat $ sequenceA k

@@ -8,12 +8,15 @@ import FRP.Helm.Keyboard (Key)
 type Time = Double
 
 data Event = HitEnemy Enemy
+           | SpawnEnemy Position
 type Events = [Event]
 
 type EnemyID = Int
-data Enemy = Enemy { echar :: Char
-                   , epos  :: Position
-                   , eid   :: EnemyID
+data EnemyState = Alive | Dead deriving (Eq)
+data Enemy = Enemy { echar  :: Char
+                   , epos   :: Position
+                   , estate :: EnemyState
+                   , eid    :: EnemyID
                    }
 instance Eq Enemy where
   e == f = eid e == eid f

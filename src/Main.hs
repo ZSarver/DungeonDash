@@ -1,21 +1,27 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RecursiveDo #-}
-import Keyboard (clockedKeyDownEvents, Key( .. ))
+
+import Keyboard (keyDownEvents, Key( .. ))
 import Types
 import Render
 import SignalUtils
 import Vector
-import Enemy
-import Event
+import Enemy (enemiesInit, enemiesStep)
+import Event (eventsInit, eventsStep)
+import Player (playerInit, playerStep)
 
 import FRP.Helm
 import Control.Applicative
 import FRP.Helm.Time(fps,second)
-import FRP.Helm.Random (float)
+import FRP.Helm.Random (range)
 import FRP.Helm.Sample (value, Sample (..))
 import Data.Traversable (sequenceA)
-import FRP.Elerea.Param (effectful, transfer2, transfer,snapshot,delay)
+import FRP.Elerea.Param 
+  ( effectful, transfer2, transfer
+  , transfer3, snapshot,delay, execute
+  , start, stateful)
 import Data.IORef (newIORef, readIORef, modifyIORef, IORef)
+
 {-
 So here's the plan:
 We'll have a few top level signals with fixed dependencies. All signals will
@@ -69,51 +75,41 @@ events :: Signal Events
 
 display :: Enemies -> Player -> Element
 
-
 -- input doesn't need a single dedicated signal
-
-
 
 -}
 
-pc :: Signal Player
-pc = Player '@' <~ loop
+{-
+spawns = spawnOnSpace
+spawnOnSpace = spawnWith $ (not.null) <~ clockedKeyDownEvents gameClock [SpaceKey]
+spawnWith :: Signal Bool -> Signal Events
+-}
+spawnWhen s = fmap f s
+  where
+  f False = []
+  f True = [SpawnEnemy (Vec2 100 100)]
+
+(+-+) = liftA2 (++)
 
 
-gameClock = fps' 30
-  where 
-    f y (Changed x) = Changed y
-    f _ (Unchanged _) = Unchanged 0
-    fps' k = Signal $ (fmap.fmap) (f (second / k)) $ signalGen $ fps k
+elapsedTime = stateful 0 (+)
 
-keys = clockedKeyDownEvents gameClock [UpKey, DownKey, LeftKey, RightKey]
-    
-gameClockElapsed = foldp (+) 0 gameClock
-loop :: Signal Vec2
-loop = let r= 50; z = 500 in fmap (\t -> (Vec2 (r * cos (t/z)) (r * sin (t/z)))) gameClockElapsed
-data Pack = Pack
-  { getEnemies :: Enemies
-  , getEvents :: Events
-  --, _player :: Player
-  }
-main = run config $ render 800 600 <~ pc ~~ enemies
+game = start $ mdo
+  let events = events1 +-+ spawnWhen spaceDown
+      spaceDown = elem SpaceKey <$> keys
+  keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
+  enemies <- transfer2 enemiesInit enemiesStep player events
+  player <- transfer playerInit playerStep events
+  events1 <- delay eventsInit =<< transfer3 eventsInit eventsStep keys player enemies
+  return $ fmap pure $ liftA2 (,) enemies player
+
+main = do
+  print "aa"
+  stepGame <- game
+  let game' = Signal $ effectful (stepGame 0.8)
+      enemies = fmap fst game'
+      player = fmap snd game'
+  run config $ refresh $ render 800 600 <~ player ~~ enemies
   where
     config = defaultConfig { windowTitle = "Dungeon Dash!", windowPosition = (200,200) }
-    enemies = fmap getEnemies linkup
-    events = fmap getEvents linkup
-    wrap = Signal . pure
-    linkup = Signal $ mdo
-      -- The Naive version of this code would read
-      -- enemies = foldp3' enemiesStep enemiesInit gameClock pc events
-      -- events = lag gameClock eventsInit $ -- the lag is to prevent mutual dependency *within the same game tick*
-      --   foldp3' eventsStep eventsInit keys pc enemies
-      -- but the naive version breaks because of some niggle related to the recursion
-      -- but elerea's signals have a monadFix instance that handles the recursion fine
-      -- inside of an mdo block (like a do block, but with recursion)
-      -- So! To do the linkup we just state the relationship in terms of the "naked"
-      -- elerea signals and then wrap them back up.
-      enemies' <- signalGen $ 
-        foldp3' enemiesStep enemiesInit gameClock pc (wrap events')
-      events' <- signalGen $ lag gameClock eventsInit $ 
-        foldp3' eventsStep eventsInit keys pc (wrap enemies')
-      return $ (liftA2.liftA2) Pack enemies' events'
+    refresh s = const <~ s ~~ (fps 40)
