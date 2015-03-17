@@ -11,9 +11,14 @@ import FRP.Helm.Keyboard (Key)
 
 type Time = Double
 
-data Enemies = Enemies {list :: [Enemy]}
+data Event = HitEnemy EnemyID Position
+type Events = [Event]
 
-data Enemy = Enemy {echar :: Char, epos :: Position}
+type EnemyID = Int
+data Enemy = Enemy {echar :: Char
+                   , epos :: Position
+                   , eid :: EnemyID}
+data Enemies = Enemies {list :: [Enemy]}
 
 data Player = Player {pchar :: Char, ppos :: Position}
 
