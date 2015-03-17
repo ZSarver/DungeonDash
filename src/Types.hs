@@ -1,29 +1,28 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
-
 module Types where
 
 import Vector
 
 import FRP.Helm.Keyboard (Key)
 
-
 type Time = Double
 
-data Event = HitEnemy EnemyID Position
+data Event = HitEnemy Enemy
 type Events = [Event]
 
 type EnemyID = Int
-data Enemy = Enemy {echar :: Char
-                   , epos :: Position
-                   , eid :: EnemyID}
+data Enemy = Enemy { echar :: Char
+                   , epos  :: Position
+                   , eid   :: EnemyID
+                   }
+instance Eq Enemy where
+  e == f = eid e == eid f
 data Enemies = Enemies {list :: [Enemy]}
 
 data Player = Player {pchar :: Char, ppos :: Position}
 
 data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone
-
+{-
 class StepWith a z where
   stepWith :: a -> z -> z
 class StepWith2 a b z where
@@ -35,7 +34,7 @@ instance (StepWith a z, StepWith b z) => StepWith2 a b z where
 instance (StepWith2 a b z, StepWith c z) => StepWith3 a b c z where
   stepWith3 a b c = stepWith c . stepWith2 a b
 
-{-class Update a where
+class Update a where
   update :: Inputs -> a -> a
 
 instance Update Enemy where

@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
 import Keyboard (clockedKeyDownEvents, Key( .. ))
 import Types
 import Render
@@ -75,22 +76,8 @@ display :: Enemies -> Player -> Element
 
 -}
 
-events :: Signal Events
-events = foldp3' eventsStep eventsInit keys pc enemies
-  where
-  keys = clockedKeyDownEvents gameClock [UpKey, DownKey, LeftKey, RightKey]
-
-
-enemies' :: Signal [Enemy]
-enemies' = foldp3' evolveNmeList [] gameClock loop (clockedKeyDownEvents gameClock [SpaceKey])
-
-enemies = fmap Enemies enemies'
-  
 pc :: Signal Player
 pc = Player '@' <~ loop
---pc = pure $ Character '@' (0,0)
-
-
 
 
 gameClock = fps' 30
@@ -99,12 +86,21 @@ gameClock = fps' 30
     f _ (Unchanged _) = Unchanged 0
     fps' k = Signal $ (fmap.fmap) (f (second / k)) $ signalGen $ fps k
 
+keys = clockedKeyDownEvents gameClock [UpKey, DownKey, LeftKey, RightKey]
+    
 gameClockElapsed = foldp (+) 0 gameClock
 loop :: Signal Vec2
 loop = let r= 50; z = 500 in fmap (\t -> (Vec2 (r * cos (t/z)) (r * sin (t/z)))) gameClockElapsed
 
-
-main = do
-    run config $ render 800 600 <~ pc ~~ enemies
+main = run config $ render 800 600 <~ pc ~~ enemies
   where
     config = defaultConfig { windowTitle = "Dungeon Dash!", windowPosition = (200,200) }
+    enemies = fmap fst linkup
+    events = fmap snd linkup
+    wrap = Signal . pure
+    linkup = Signal $ mdo
+      enemies' <- signalGen $ 
+        foldp3' enemiesStep enemiesInit gameClock pc (wrap events')
+      events' <- signalGen $ lag gameClock eventsInit $ 
+        foldp3' eventsStep eventsInit keys pc (wrap enemies')
+      return $ (liftA2.liftA2) (,) enemies events

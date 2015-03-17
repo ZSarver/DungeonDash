@@ -34,7 +34,7 @@ eventsStep keys Player{ppos=p} Enemies{list=elist} _ = if null keys then []
   where
   hit l = case l of
     []    -> []
-    (e:_) -> [HitEnemy (eid e) (epos e)]
+    (e:_) -> [HitEnemy e]
   (up, down, left, right, out) = let s = sortBy (comparing $ distance p . epos) in (s up',s down',s left',s right',s out')
   (up',down',left',right',out') = foldr split ([],[],[],[],[]) $ zip elist $ fmap (getZone zoneRadius p . epos) elist
   split (e,UpZone   ) (u,d,l,r,o) = (e:u,  d,  l,  r,  o)

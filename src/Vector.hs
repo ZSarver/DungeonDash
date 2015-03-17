@@ -1,6 +1,6 @@
 module Vector where
 
-data Vec2 = Vec2 !Double !Double
+data Vec2 = Vec2 !Double !Double deriving (Eq)
 type Position = Vec2
 
 vec2 :: (Double, Double) -> Vec2

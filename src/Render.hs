@@ -14,14 +14,9 @@ render w' h' p e = centeredCollage w' h' $ [background, drawEnemies e, drawPlaye
   where
   (w,h) = (fromIntegral w', fromIntegral h')
   background =  filled black $ rect w h
-
-  
---  drawCharacter col c = let (Character a p) = toCharacter c in move (toTuple p) (drawSymbol a col)
   
 drawSymbol ::  Color -> Vec2 -> Char -> Form
 drawSymbol c v a = move (toTuple v) . toForm . text . color c . toText $ [a]
-
-
 
 drawEnemies :: Enemies -> Form
 drawEnemies = group . fmap drawEnemy . list

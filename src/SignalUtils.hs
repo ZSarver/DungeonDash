@@ -7,6 +7,8 @@ import FRP.Helm.Sample (Sample(..), value)
 import FRP.Elerea.Param (transfer2)
 import Control.Applicative
 
+
+
 --This belongs in helm.sample
 --suppresses the changed token in a sample
 quiet :: Sample a -> Sample a
@@ -34,6 +36,13 @@ maskAux (Signal x') (Signal y') = Signal $ do
   where
     f _ x@(Changed _) y _ = const <$> fmap Just y <*> x
     f _ _             _ o = quiet o
+
+    
+--Uses the clock signal to create a masked version of signal b
+-- that is delayed by one tick
+lag :: Signal a -> b -> Signal b -> Signal b
+lag clock x0 x = fmap snd $ foldp slide (x0,x0) (mask clock x)
+  where  slide x1 (x2,x3) = (x1,x2)
 
 --foldp#' behaves like foldp for multiple signals
 --except that the updates of input signals after the first one
