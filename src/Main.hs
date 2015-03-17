@@ -1,10 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
-import Keyboard (defaultKeyDownEvents, keyDownEvents, Key( .. ))
+import Keyboard (clockedKeyDownEvents, Key( .. ))
 import Types
 import Render
 import SignalUtils
 import Vector
 import Enemy
+import Event
 
 import FRP.Helm
 import Control.Applicative
@@ -74,28 +75,23 @@ display :: Enemies -> Player -> Element
 
 -}
 
-enemies :: Signal [Enemy]
-enemies = foldp3' evolveNmeList [] clock loop (keyDownEvents [SpaceKey])
+events :: Signal Events
+events = foldp3' eventsStep eventsInit keys pc enemies
   where
-  clock = unmask (keyDownEvents [SpaceKey]) gameClock
-enemies' = fmap Enemies enemies
+  keys = clockedKeyDownEvents gameClock [UpKey, DownKey, LeftKey, RightKey]
+
+
+enemies' :: Signal [Enemy]
+enemies' = foldp3' evolveNmeList [] gameClock loop (clockedKeyDownEvents gameClock [SpaceKey])
+
+enemies = fmap Enemies enemies'
   
 pc :: Signal Player
 pc = Player '@' <~ loop
 --pc = pure $ Character '@' (0,0)
 
 
-getZone :: Double -> Position -> Position -> Zone
-getZone radius playerPos enemyPos = 
-  let d = distance playerPos enemyPos 
-      Vec2 v1 v2 = enemyPos `minus` playerPos
-  in   if d > radius then OutZone
-       else case (v1 - v2 > 0, v1 + v2 > 0  ) of
-            --   (top-right? , bottom-right?)
-            (True,True)   -> RightZone
-            (True,False)  -> UpZone
-            (False,True)  -> DownZone
-            (False,False) -> LeftZone
+
 
 gameClock = fps' 30
   where 
@@ -109,6 +105,6 @@ loop = let r= 50; z = 500 in fmap (\t -> (Vec2 (r * cos (t/z)) (r * sin (t/z))))
 
 
 main = do
-    run config $ render 800 600 <~ pc ~~ enemies'
+    run config $ render 800 600 <~ pc ~~ enemies
   where
     config = defaultConfig { windowTitle = "Dungeon Dash!", windowPosition = (200,200) }
