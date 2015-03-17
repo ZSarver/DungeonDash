@@ -24,8 +24,6 @@ instance (StepWith2 a b z, StepWith c z) => StepWith3 a b c z where
 
 -- a -> z -> z
 -- 
-instance (StepWith a z, StepWith b z) => StepWith2 a b z where
-  stepWith2 a b = stepWith b . stepWith a
 
 type Time = Double
 
