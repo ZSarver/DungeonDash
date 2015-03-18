@@ -6,26 +6,21 @@ import Types
 import Render
 import SignalUtils
 import Vector
+import Random
 import Enemy (enemiesInit, enemiesStep)
 import Event (eventsInit, eventsStep)
 import Player (playerInit, playerStep)
 
 import FRP.Helm
 import FRP.Helm.Time(fps)
+import FRP.Helm.Sample (Sample)
 import FRP.Elerea.Param hiding (Signal)
 import qualified FRP.Elerea.Param as E
-import System.Random (Random, randomRIO)
+import System.Random (Random, randomRIO,mkStdGen,randomIO)
 import Control.Applicative
 import Data.Traversable (sequenceA)
 
 
-useRandom' :: Random a =>  (a,a) -> Maybe (a -> b) ->  IO (Maybe b)
-useRandom' r f = case f of
-  Nothing -> return Nothing
-  Just g -> fmap (Just . g) $ randomRIO r
-useRandom :: Random a => E.Signal (a,a) -> E.Signal (Maybe (a -> b)) -> E.SignalGen p (E.Signal (Maybe b))
-useRandom r f = effectful2 useRandom' r f
-   
 
 {-
 So here's the plan:
@@ -73,8 +68,8 @@ spawnWhen s = fmap f s
   f False = []
 
 elapsedTime = stateful 0 (+)
-
-game = start $ mdo
+--game :: StdGen -> E.SignalGen Double (E.Signal (Sample (Enemies,Player)))
+game =  mdo
   let events = fmap concat . sequenceA $ 
         [ events1
         , spawnWhen spaceDown
@@ -87,8 +82,7 @@ game = start $ mdo
   return $ fmap pure $ liftA2 (,) enemies player
 
 main = do
-  print "aa"
-  stepGame <- game
+  stepGame <- start game
   let game' = Signal $ effectful (stepGame 0.8)
       enemies = fmap fst game'
       player = fmap snd game'
