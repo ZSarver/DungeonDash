@@ -2,6 +2,7 @@ module Types where
 
 import Vector
 import Keyboard (Key(..))
+import FRP.Helm.Color (Color)
 
 type Time = Double
 
@@ -11,10 +12,11 @@ type Events = [Event]
 
 type EnemyID = Int
 data EnemyState = Alive | Dead deriving (Eq)
-data Enemy = Enemy { echar  :: Char
-                   , epos   :: Position
-                   , estate :: EnemyState
-                   , eid    :: EnemyID
+data Enemy = Enemy { echar     :: Char
+                   , epos      :: Position
+                   , estate    :: EnemyState
+                   , eid       :: EnemyID
+                   , highlight :: Maybe Color
                    }
 instance Eq Enemy where
   e == f = eid e == eid f

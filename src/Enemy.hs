@@ -2,6 +2,8 @@ module Enemy where
 
 import Types
 import Vector
+import Data.List (find)
+import FRP.Helm.Color (Color)
 
 modifyBy :: (a -> Bool) -> (a -> a) -> [a] -> [a]
 modifyBy _ _ [] = []
@@ -18,9 +20,15 @@ enemiesStep dt p events Enemies{list=elist} = Enemies
   handleEvent :: Event -> [Enemy] -> [Enemy]
   handleEvent event enemyList = case event of
     HitEnemy e      -> modifyBy (==e) hit enemyList
-    SpawnEnemy here -> insertEnemy (Enemy 'k' here Alive) enemyList
+    SpawnEnemy here -> insertEnemy (newEnemy here) enemyList
     _               -> enemyList
 
+setHighlights :: [(Enemy, Color)] -> [Enemy] -> [Enemy]
+setHighlights highlights es = fmap f es
+  where
+  f e = case find ((==e).fst) highlights of
+          Nothing    -> e{highlight = Nothing}
+          Just (_,c) -> e{highlight = Just c}
 
 insertEnemy :: (EnemyID -> Enemy) -> [Enemy] -> [Enemy]
 insertEnemy f list = insertEnemyAux 0 list
@@ -44,8 +52,7 @@ enemyStep dt Player{ppos=p} e@Enemy{epos=oldpos} = e{epos=newpos}
   space = 30
   newpos = chaseStep speed space dt p oldpos
 
-nme0 v = Enemy 'k' v Alive 0
-
+newEnemy pos eid = Enemy 'k' pos Alive eid Nothing
 
 chaseStep :: Double -> Double -> Time -> Position -> Position -> Position
 chaseStep speed goalDistance time target start  = 
