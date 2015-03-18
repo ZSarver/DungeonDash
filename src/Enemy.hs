@@ -19,7 +19,7 @@ enemiesStep dt p events Enemies{list=elist} = Enemies
   handleEvent event enemyList = case event of
     HitEnemy e      -> modifyBy (==e) hit enemyList
     SpawnEnemy here -> insertEnemy (Enemy 'k' here Alive) enemyList
-    otherwise       -> enemyList
+    _               -> enemyList
 
 
 insertEnemy :: (EnemyID -> Enemy) -> [Enemy] -> [Enemy]
