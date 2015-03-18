@@ -12,7 +12,7 @@ playerStep dt events player = foldr handleEvent player events
   handleEvent :: Event -> Player -> Player
   handleEvent e p = case e of
     HitEnemy Enemy{epos=t} -> p{ppos=t}
-    otherwise              -> p
+    _                      -> p
 
     
 
