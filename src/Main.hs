@@ -65,7 +65,7 @@ dependency network is fixed, we will never end up with wacky types of the form
 spawnWhen :: E.Signal Bool -> E.Signal (Rand [Event])
 spawnWhen s = fmap f s
   where
-  f True = (\x y -> [SpawnEnemy (Vec2 x y)]) <$> randR (-400,400) <*> randR (-300,300)
+  f True = (\x y -> [SpawnEnemy (Vec2 x y)]) <$> range (-400,400) <*> range (-300,300)
   f False = pure []
 
 elapsedTime = stateful 0 (+)
@@ -80,7 +80,7 @@ game rng = mdo
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
   events1 <- delay eventsInit =<< transfer3 eventsInit eventsStep keys player enemies
-  spawns <- withRng rng $ spawnWhen spaceDown
+  spawns <- effectful1 (withRng rng) $ spawnWhen spaceDown
   return $ fmap pure $ liftA2 (,) enemies player
 
 main = do
