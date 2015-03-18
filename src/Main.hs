@@ -8,7 +8,7 @@ import SignalUtils
 import Vector
 import Random
 import Enemy (enemiesInit, enemiesStep)
-import Event (eventsInit, eventsStep)
+import Event
 import Player (playerInit, playerStep)
 
 import FRP.Helm hiding (Time)
@@ -88,14 +88,14 @@ game :: Int -> E.SignalGen Time (E.Signal (Sample (Enemies,Player)))
 game seed = mdo
   rng <- liftIO $ mkRng seed
   let events = fmap concat . sequenceA $ 
-        [ events1
+        [ hits
         , spawns
         ]
       spaceDown = elem SpaceKey <$> keys
   keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
-  events1 <- delay eventsInit =<< transfer3 eventsInit eventsStep keys player enemies
+  hits <- delay eventsInit $ getHits <$> keys <*> player <*> enemies
   spawns <- evalRandomSignal rng =<< fmap spawnWhen (every 1000)
   return $ fmap pure $ liftA2 (,) enemies player
 
