@@ -11,7 +11,7 @@ import Enemy (enemiesInit, enemiesStep)
 import Event (eventsInit, eventsStep)
 import Player (playerInit, playerStep)
 
-import FRP.Helm
+import FRP.Helm hiding (Time)
 import FRP.Helm.Time(fps)
 import FRP.Helm.Sample (Sample)
 import FRP.Elerea.Param hiding (Signal)
@@ -19,7 +19,7 @@ import qualified FRP.Elerea.Param as E
 import System.Random (Random, randomRIO,mkStdGen,randomIO)
 import Control.Applicative
 import Data.Traversable (sequenceA)
-
+import Control.Monad.IO.Class (liftIO)
 
 
 {-
@@ -75,8 +75,18 @@ evalRandomSignal g s = effectful1 (withRng g) s
 
 elapsedTime = stateful 0 (+)
 
-game :: Rng -> E.SignalGen Double (E.Signal (Sample (Enemies,Player)))
-game rng = mdo
+-- every primetime signal time, time!
+every :: Time -> E.SignalGen Time (E.Signal Bool)
+every t = (fmap.fmap) snd $ stateful (0,False) f
+  where  f dt (acc,_) = let acc' = dt + acc in 
+                           if acc' > t 
+                           then (acc' - t, True)
+                           else (acc', False)
+       
+
+game :: Int -> E.SignalGen Time (E.Signal (Sample (Enemies,Player)))
+game seed = mdo
+  rng <- liftIO $ mkRng seed
   let events = fmap concat . sequenceA $ 
         [ events1
         , spawns
@@ -86,12 +96,12 @@ game rng = mdo
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
   events1 <- delay eventsInit =<< transfer3 eventsInit eventsStep keys player enemies
-  spawns <- evalRandomSignal rng $ spawnWhen spaceDown
+  spawns <- evalRandomSignal rng =<< fmap spawnWhen (every 1000)
   return $ fmap pure $ liftA2 (,) enemies player
 
+  
 main = do
-  rng <- mkRng =<< randomIO
-  stepGame <- start $ game rng
+  stepGame <- start $ game 12345
   let game' = Signal $ effectful (stepGame 0.8)
       enemies = fmap fst game'
       player = fmap snd game'

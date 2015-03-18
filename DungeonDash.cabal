@@ -25,5 +25,6 @@ executable DungeonDash
                      , random == 1.0.1.1
                      , stm == 2.4.2
                      , mtl == 2.1.3.1
+                     , transformers == 0.3.0.0
   hs-source-dirs:      src
   default-language:    Haskell2010
