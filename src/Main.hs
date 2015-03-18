@@ -62,11 +62,10 @@ dependency network is fixed, we will never end up with wacky types of the form
        SIMULATION_SPEED_MULTIPLIER, or other special effects
 -}
 
-spawnWhen :: E.Signal Bool -> E.Signal (Makes [Event])
+spawnWhen :: E.Signal Bool -> E.Signal (Rand [Event])
 spawnWhen s = fmap f s
   where
-  f True = randomly2 (-400,400) (-300,300) $ \x y -> 
-             [SpawnEnemy (Vec2 x y)]
+  f True = (\x y -> [SpawnEnemy (Vec2 x y)]) <$> randR (-400,400) <*> randR (-300,300)
   f False = pure []
 
 elapsedTime = stateful 0 (+)
