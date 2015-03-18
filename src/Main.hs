@@ -61,14 +61,20 @@ dependency network is fixed, we will never end up with wacky types of the form
     - we may also want signals for ITEMS, BLOOD_SPLATTERS, 
        SIMULATION_SPEED_MULTIPLIER, or other special effects
 -}
+randomPosition :: Rand Position
+randomPosition = Vec2 <$> range (-400,400) <*> range (-300,300)
 
 spawnWhen :: E.Signal Bool -> E.Signal (Rand [Event])
 spawnWhen s = fmap f s
   where
-  f True = (\x y -> [SpawnEnemy (Vec2 x y)]) <$> range (-400,400) <*> range (-300,300)
+  f True = (\p -> [SpawnEnemy p]) <$> randomPosition
   f False = pure []
 
+evalRandomSignal :: Rng -> E.Signal (Rand a) -> E.SignalGen p (E.Signal a)
+evalRandomSignal g s = effectful1 (withRng g) s
+
 elapsedTime = stateful 0 (+)
+
 game :: Rng -> E.SignalGen Double (E.Signal (Sample (Enemies,Player)))
 game rng = mdo
   let events = fmap concat . sequenceA $ 
@@ -80,7 +86,7 @@ game rng = mdo
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
   events1 <- delay eventsInit =<< transfer3 eventsInit eventsStep keys player enemies
-  spawns <- effectful1 (withRng rng) $ spawnWhen spaceDown
+  spawns <- evalRandomSignal rng $ spawnWhen spaceDown
   return $ fmap pure $ liftA2 (,) enemies player
 
 main = do

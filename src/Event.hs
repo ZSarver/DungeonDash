@@ -12,9 +12,16 @@ eventsInit = []
  -- TODO: this should become a function of Player if it starts to vary during the game
 zoneRadius = 100
 
+--Eventually we want the zones to be color coded.
+--I suggest we match the colors of the xbox controller 
+-- buttons for easier association
+--     Y
+--    B R
+--     G
+
 getZone :: Double -> Position -> Position -> Zone
-getZone radius playerPos enemyPos = UpZone
-{-  let d = distance playerPos enemyPos 
+getZone radius playerPos enemyPos = 
+  let d = distance playerPos enemyPos 
       Vec2 v1 v2 = enemyPos `minus` playerPos
   in   if d > radius then OutZone
        else case (v1 - v2 > 0, v1 + v2 > 0  ) of
@@ -23,7 +30,7 @@ getZone radius playerPos enemyPos = UpZone
             (False,True)  -> DownZone
             (False,False) -> LeftZone
             (True,True)   -> RightZone
--}
+
 eventsStep :: Time -> [Key] -> Player -> Enemies -> Events -> Events
 eventsStep _ keys Player{ppos=p} Enemies{list=elist} _ = if null keys then [] 
   else case head keys of
