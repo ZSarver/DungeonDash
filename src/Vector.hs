@@ -1,7 +1,18 @@
 module Vector where
+import System.Random (Random, random, randomR)
 
 data Vec2 = Vec2 !Double !Double deriving (Eq)
 type Position = Vec2
+
+instance Random Vec2 where
+  random g1 = let (x,g2) = random g1
+                  (y,g3) = random g2
+              in (Vec2 x y, g3)
+  randomR (Vec2 x1 y1, Vec2 x2 y2) g1 = 
+    let (x,g2) = randomR (x1,x2) g1
+        (y,g3) = randomR (y1,y2) g2
+    in (Vec2 x y, g3)
+  
 
 zero :: Vec2
 zero = Vec2 0 0

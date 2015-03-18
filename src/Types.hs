@@ -2,8 +2,7 @@
 module Types where
 
 import Vector
-
-import FRP.Helm.Keyboard (Key)
+import Keyboard (Key(..))
 
 type Time = Double
 

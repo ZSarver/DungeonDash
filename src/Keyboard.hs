@@ -19,8 +19,7 @@ getKBState = alloca $ \numkeysPtr -> do
   (map fromIntegral . elemIndices 1) <$> peekArray (fromIntegral numkeys) keysPtr
 
 isDown :: Key -> SignalGen p (Signal Bool)
-isDown k = getDown >>= transfer True (\_ x _ -> x)
-  where getDown = effectful $ elem (fromEnum k) <$> getKBState
+isDown k = effectful $ elem (fromEnum k) <$> getKBState
 
 keyDownEvents1 :: Key -> SignalGen p (Signal [Key])
 keyDownEvents1 k = (liftA2.liftA2) f (isDown k) (wasUp k)
