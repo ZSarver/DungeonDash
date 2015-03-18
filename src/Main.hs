@@ -62,27 +62,31 @@ dependency network is fixed, we will never end up with wacky types of the form
        SIMULATION_SPEED_MULTIPLIER, or other special effects
 -}
 
+spawnWhen :: E.Signal Bool -> E.Signal (Makes [Event])
 spawnWhen s = fmap f s
   where
-  f True = [SpawnEnemy (Vec2 100 100)]
-  f False = []
+  f True = randomly2 (-400,400) (-300,300) $ \x y -> 
+             [SpawnEnemy (Vec2 x y)]
+  f False = pure []
 
 elapsedTime = stateful 0 (+)
---game :: StdGen -> E.SignalGen Double (E.Signal (Sample (Enemies,Player)))
-game =  mdo
+game :: Rng -> E.SignalGen Double (E.Signal (Sample (Enemies,Player)))
+game rng = mdo
   let events = fmap concat . sequenceA $ 
         [ events1
-        , spawnWhen spaceDown
+        , spawns
         ]
       spaceDown = elem SpaceKey <$> keys
   keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
   events1 <- delay eventsInit =<< transfer3 eventsInit eventsStep keys player enemies
+  spawns <- withRng rng $ spawnWhen spaceDown
   return $ fmap pure $ liftA2 (,) enemies player
 
 main = do
-  stepGame <- start game
+  rng <- mkRng =<< randomIO
+  stepGame <- start $ game rng
   let game' = Signal $ effectful (stepGame 0.8)
       enemies = fmap fst game'
       player = fmap snd game'
