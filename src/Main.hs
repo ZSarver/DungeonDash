@@ -62,7 +62,7 @@ dependency network is fixed, we will never end up with wacky types of the form
        SIMULATION_SPEED_MULTIPLIER, or other special effects
 -}
 randomPosition :: Rand Position
-randomPosition = Vec2 <$> range (-400,400) <*> range (-300,300)
+randomPosition = Vec2 <$> range (-1000,1000) <*> range (-1000,1000)
 
 spawnWhen :: E.Signal Bool -> E.Signal (Rand [Event])
 spawnWhen s = fmap f s

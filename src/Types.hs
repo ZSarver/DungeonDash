@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 module Types where
 
 import Vector
@@ -23,7 +22,7 @@ data Enemies = Enemies {list :: [Enemy]}
 
 data Player = Player {pchar :: Char, ppos :: Position}
 
-data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone
+data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone deriving (Eq)
 {-
 class StepWith a z where
   stepWith :: a -> z -> z

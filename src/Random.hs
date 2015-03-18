@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Random (Rng, Rand, mkRng, splitRng, withRng, rand, range ) where
 import System.Random --(Random, randomR, randomRIO,mkStdGen,randomIO, StdGen)
 import Control.Concurrent.STM

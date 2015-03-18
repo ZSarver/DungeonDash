@@ -32,21 +32,30 @@ getZone radius playerPos enemyPos =
             (True,True)   -> RightZone
 
 eventsStep :: Time -> [Key] -> Player -> Enemies -> Events -> Events
-eventsStep _ keys Player{ppos=p} Enemies{list=elist} _ = if null keys then [] 
+eventsStep _ keys p e _ = getHits keys p e
+
+
+getHits keys p e = if null keys then [] 
   else case head keys of
-    UpKey    -> hit up
-    DownKey  -> hit down
-    LeftKey  -> hit left
-    RightKey -> hit right
-    otherwise -> []
+    UpKey    -> hit UpZone
+    DownKey  -> hit DownZone
+    LeftKey  -> hit LeftZone
+    RightKey -> hit RightZone
+    _        -> []
   where
-  hit l = case l of
-    []    -> []
-    (e:_) -> [HitEnemy e]
-  (up, down, left, right, out) = let s = sortBy (comparing $ distance p . epos) in (s up',s down',s left',s right',s out')
-  (up',down',left',right',out') = foldr split ([],[],[],[],[]) $ zip elist $ fmap (getZone zoneRadius p . epos) elist
+  hit z = fmap (HitEnemy . snd) $ filter ((z==) . fst) $ (targets p e)
+    
+targets :: Player -> Enemies -> [(Zone, Enemy)]
+targets Player{ppos=p} Enemies{list=elist} = concat
+  . zipWith zip [[UpZone],[DownZone],[LeftZone],[RightZone]]
+  . fmap (sortBy (comparing $ distance p . epos))
+  $ [up, down, left, right]
+  where
+  (up,down,left,right,out) = foldr split ([],[],[],[],[]) $ zip elist $ fmap (getZone zoneRadius p . epos) elist
   split (e,UpZone   ) (u,d,l,r,o) = (e:u,  d,  l,  r,  o)
   split (e,DownZone ) (u,d,l,r,o) = (  u,e:d,  l,  r,  o)
   split (e,LeftZone ) (u,d,l,r,o) = (  u,  d,e:l,  r,  o)
   split (e,RightZone) (u,d,l,r,o) = (  u,  d,  l,e:r,  o)
   split (e,OutZone  ) (u,d,l,r,o) = (  u,  d,  l,  r,e:o)
+  
+  
