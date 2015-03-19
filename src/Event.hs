@@ -9,16 +9,6 @@ import Data.Ord (comparing)
 eventsInit :: Events
 eventsInit = []
 
- -- TODO: this should become a function of Player if it starts to vary during the game
-zoneRadius = 100
-
---Eventually we want the zones to be color coded.
---I suggest we match the colors of the xbox controller 
--- buttons for easier association
---     Y
---    B R
---     G
-
 getZone :: Double -> Position -> Position -> Zone
 getZone radius playerPos enemyPos = 
   let d = distance playerPos enemyPos 
@@ -46,12 +36,12 @@ getHits keys p e = if null keys then []
   hit z = fmap (HitEnemy . fst) $ filter ((z==) . snd) $ (targets p e)
     
 targets :: Player -> Enemies -> [(Enemy, Zone)]
-targets Player{ppos=p} Enemies{list=elist} = concat
+targets Player{ppos=p, zoneRadius=zr} Enemies{list=elist} = concat
   . zipWith (flip zip) [[UpZone],[DownZone],[LeftZone],[RightZone]]
   . fmap (sortBy (comparing $ distance p . epos))
   $ [up, down, left, right]
   where
-  (up,down,left,right,out) = foldr split ([],[],[],[],[]) $ zip elist $ fmap (getZone zoneRadius p . epos) elist
+  (up,down,left,right,out) = foldr split ([],[],[],[],[]) $ zip elist $ fmap (getZone zr p . epos) elist
   split (e,UpZone   ) (u,d,l,r,o) = (e:u,  d,  l,  r,  o)
   split (e,DownZone ) (u,d,l,r,o) = (  u,e:d,  l,  r,  o)
   split (e,LeftZone ) (u,d,l,r,o) = (  u,  d,e:l,  r,  o)

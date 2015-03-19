@@ -7,13 +7,13 @@ import Vector
 import FRP.Helm.Color
 import FRP.Helm.Text (text, color, toText)
 import FRP.Helm (toForm, move, rect, centeredCollage, filled, Element, group, Form)
-import FRP.Helm.Graphics (outlined, solid, circle)
+import FRP.Helm.Graphics -- (outlined, solid, circle)
 import Data.Maybe (maybeToList)
 import Control.Applicative
 
 
 render :: Int -> Int -> Player -> Enemies -> Element
-render w' h' p e = centeredCollage w' h' $ [background, drawEnemies e, drawPlayer p]
+render w' h' p e = centeredCollage w' h' $ [background, drawZones p, drawEnemies e, drawPlayer p]
   where
   (w,h) = (fromIntegral w', fromIntegral h')
   background =  filled black $ rect w h
@@ -32,3 +32,21 @@ drawEnemy Enemy{..} = group $ h ++ [drawSymbol grey epos echar]
 
 drawPlayer :: Player -> Form
 drawPlayer Player{..} = drawSymbol white ppos pchar
+
+drawZones :: Player -> Form
+drawZones Player{..} = move (toTuple ppos)
+  $ group 
+  [ filled (rgba 1 1 0 0.1) $ polygon (path up)
+  , filled (rgba 0 1 0 0.1) $ polygon (path down)
+  , filled (rgba 0 0 1 0.06) $ polygon (path left)
+  , filled (rgba 1 0 0 0.1) $ polygon (path right)
+  ]
+  where
+  f = (\t -> (zoneRadius * (cos t), zoneRadius * (sin t))) . (*pi)
+  range a b n = fmap (\t -> (1-(t/n))*a + (t/n) * b) [0..n]
+  up =    range (5/4) (7/4) 30
+  down =  range (1/4) (3/4) 30
+  left =  range (3/4) (5/4) 30
+  right = range (7/4) (9/4) 30
+  path x = (0,0) : fmap f x
+  pi = 3.14159265358979323

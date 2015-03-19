@@ -22,13 +22,13 @@ instance Eq Enemy where
   e == f = eid e == eid f
 data Enemies = Enemies {list :: [Enemy]}
 
-data Player = Player {pchar :: Char, ppos :: Position}
+data Player = Player {pchar :: Char, ppos :: Position, zoneRadius :: Double}
 
 data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone deriving (Eq, Enum)
 
 zoneColors z = colorlist !! fromEnum z
 
-colorlist = [yellow, green, red, blue, (rgba 0 0 0 0)]
+colorlist = [yellow, green, blue, red, (rgba 0 0 0 0)]
 {-
 class StepWith a z where
   stepWith :: a -> z -> z

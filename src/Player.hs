@@ -4,7 +4,7 @@ import Types
 import Vector
 
 playerInit :: Player
-playerInit = Player '@' zero
+playerInit = Player '@' zero 100
 
 playerStep :: Time -> Events -> Player -> Player
 playerStep dt events player = foldr handleEvent player events
