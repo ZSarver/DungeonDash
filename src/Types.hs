@@ -2,7 +2,7 @@ module Types where
 
 import Vector
 import Keyboard (Key(..))
-import FRP.Helm.Color (Color)
+import FRP.Helm.Color (rgba, Color, yellow, red, blue, green)
 
 type Time = Double
 
@@ -24,7 +24,11 @@ data Enemies = Enemies {list :: [Enemy]}
 
 data Player = Player {pchar :: Char, ppos :: Position}
 
-data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone deriving (Eq)
+data Zone = UpZone | DownZone | LeftZone | RightZone | OutZone deriving (Eq, Enum)
+
+zoneColors z = colorlist !! fromEnum z
+
+colorlist = [yellow, green, red, blue, (rgba 0 0 0 0)]
 {-
 class StepWith a z where
   stepWith :: a -> z -> z

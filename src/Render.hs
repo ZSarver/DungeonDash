@@ -7,6 +7,9 @@ import Vector
 import FRP.Helm.Color
 import FRP.Helm.Text (text, color, toText)
 import FRP.Helm (toForm, move, rect, centeredCollage, filled, Element, group, Form)
+import FRP.Helm.Graphics (outlined, solid, circle)
+import Data.Maybe (maybeToList)
+import Control.Applicative
 
 
 render :: Int -> Int -> Player -> Enemies -> Element
@@ -22,7 +25,10 @@ drawEnemies :: Enemies -> Form
 drawEnemies = group . fmap drawEnemy . list
 
 drawEnemy :: Enemy -> Form
-drawEnemy Enemy{..} = drawSymbol grey epos echar
+drawEnemy Enemy{..} = group $ h ++ [drawSymbol grey epos echar]
+  where
+  h = maybeToList $ move (toTuple epos) 
+      <$> liftA2 outlined (solid <$> highlight) (pure (circle 10))
 
 drawPlayer :: Player -> Form
 drawPlayer Player{..} = drawSymbol white ppos pchar

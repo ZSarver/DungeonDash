@@ -43,11 +43,11 @@ getHits keys p e = if null keys then []
     RightKey -> hit RightZone
     _        -> []
   where
-  hit z = fmap (HitEnemy . snd) $ filter ((z==) . fst) $ (targets p e)
+  hit z = fmap (HitEnemy . fst) $ filter ((z==) . snd) $ (targets p e)
     
-targets :: Player -> Enemies -> [(Zone, Enemy)]
+targets :: Player -> Enemies -> [(Enemy, Zone)]
 targets Player{ppos=p} Enemies{list=elist} = concat
-  . zipWith zip [[UpZone],[DownZone],[LeftZone],[RightZone]]
+  . zipWith (flip zip) [[UpZone],[DownZone],[LeftZone],[RightZone]]
   . fmap (sortBy (comparing $ distance p . epos))
   $ [up, down, left, right]
   where
@@ -57,5 +57,4 @@ targets Player{ppos=p} Enemies{list=elist} = concat
   split (e,LeftZone ) (u,d,l,r,o) = (  u,  d,e:l,  r,  o)
   split (e,RightZone) (u,d,l,r,o) = (  u,  d,  l,e:r,  o)
   split (e,OutZone  ) (u,d,l,r,o) = (  u,  d,  l,  r,e:o)
-  
   
