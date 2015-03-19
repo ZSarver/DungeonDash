@@ -55,7 +55,10 @@ stun :: Enemy -> Enemy
 stun e = e{estate = Stunned}
 
 enemyStep :: Time -> Player -> Enemy -> Enemy
-enemyStep dt Player{ppos=p} e@Enemy{epos=oldpos} = e{epos=newpos}
+enemyStep dt Player{ppos=p} e@Enemy{epos=oldpos} = case estate e of
+  Alive -> e{epos=newpos}
+  Dead -> e
+  Stunned -> e
   where 
   speed = 0.1
   space = 30

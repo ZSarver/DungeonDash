@@ -39,12 +39,13 @@ drawPlayer Player{..} = drawSymbol white ppos pchar
 drawZones :: Player -> Form
 drawZones Player{..} = move (toTuple ppos)
   $ group 
-  [ filled (rgba 1 1 0 0.1) $ polygon (path up)
-  , filled (rgba 0 1 0 0.1) $ polygon (path down)
-  , filled (rgba 0 0 1 0.1) $ polygon (path left)
-  , filled (rgba 1 0 0 0.1) $ polygon (path right)
+  [ gradient (grd yellow) $ polygon (path up)
+  , gradient (grd green) $ polygon (path down)
+  , gradient (grd blue) $ polygon (path left)
+  , gradient (grd red) $ polygon (path right)
   ]
   where
+  grd c@(Color r g b a) = radial (0,0) 0 (0,0) zoneRadius [(0, rgba r g b 0), (0.5, rgba r g b 0), (1, rgba r g b 0.2)]
   f = (\t -> (zoneRadius * (cos t), zoneRadius * (sin t))) . (*pi)
   up =    range (5/4) (7/4) 30
   down =  range (1/4) (3/4) 30

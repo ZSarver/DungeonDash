@@ -1,0 +1,29 @@
+
+
+================================
+=            SOONER            =
+================================
+- Sound
+- Enemies fight back
+- Something more interesting than a black background
+- Penalty for missing
+- Multihit enemies
+- Special effects on hit (particles, blood splatters, etc)
+- Enemy remains
+- Time slowdown
+- When an enemy is no longer in the zone due to player movement,
+  you should have a time window in which you can still go back and hit them.
+- Camera follows player
+- Level goals?
+- HUD
+
+=================================
+=             LATER             =
+=================================
+- Items
+- Walls and obstacles.
+  - Pathfinding.
+  - Level gen.
+
+
+

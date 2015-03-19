@@ -7,6 +7,8 @@ import Vector
 playerInit :: Player
 playerInit = Player '@' zero 150 Waiting
 
+flySpeed = 1
+
 playerStep :: Time -> Events -> Player -> Player
 playerStep dt events player = 
   handleEvents
@@ -16,7 +18,7 @@ playerStep dt events player =
   handleEvents p = foldr handleEvent p events
   handleEvent :: Event -> Player -> Player
   handleEvent e p = case e of
-    AttackEnemy nme -> fly p nme 80
+    AttackEnemy nme -> fly p nme (distance (ppos p) (epos nme) / flySpeed)
     HitEnemy nme    -> p{pact = Waiting}
     _               -> p
   tick p = case (pact p) of

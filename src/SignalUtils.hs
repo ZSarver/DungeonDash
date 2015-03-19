@@ -1,7 +1,4 @@
-
 module SignalUtils where
---This is stuff that helm should prolly provide
---we can pick through it later for things to give them
 
 import Random
 
