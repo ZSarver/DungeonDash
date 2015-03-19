@@ -24,7 +24,8 @@ enemiesStep dt p events Enemies{list=elist} = Enemies
   where
   handleEvent :: Event -> [Enemy] -> [Enemy]
   handleEvent event enemyList = case event of
-    HitEnemy e      -> modifyBy (==e) hit enemyList
+    HitEnemy nme    -> modifyBy (==nme) hit enemyList
+    AttackEnemy nme -> modifyBy (==nme) stun enemyList
     SpawnEnemy here -> insertEnemy (newEnemy here) enemyList
     _               -> enemyList
 
@@ -49,6 +50,9 @@ dead Enemy{estate = x} = x == Dead
     
 hit :: Enemy -> Enemy
 hit e = e{estate = Dead}
+
+stun :: Enemy -> Enemy
+stun e = e{estate = Stunned}
 
 enemyStep :: Time -> Player -> Enemy -> Enemy
 enemyStep dt Player{ppos=p} e@Enemy{epos=oldpos} = e{epos=newpos}

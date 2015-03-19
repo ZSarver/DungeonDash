@@ -88,14 +88,16 @@ game :: Int -> E.SignalGen Time (E.Signal (Sample (Enemies,Player)))
 game seed = mdo
   rng <- liftIO $ mkRng seed
   let events = fmap concat . sequenceA $ 
-        [ hits
+        [ attacks
         , spawns
+        , hits
         ]
       spaceDown = elem SpaceKey <$> keys
   keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
-  hits <- delay eventsInit $ getHits <$> keys <*> player <*> enemies
+  attacks <- delay eventsInit $ getAttacks <$> keys <*> player <*> enemies
+  hits <- delay eventsInit $ getHits <$> player
   spawns <- evalRandomSignal rng =<< fmap spawnWhen (every 1000)
   return $ fmap pure $ liftA2 (,) enemies player
 

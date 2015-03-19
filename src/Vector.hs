@@ -34,6 +34,8 @@ scalarMult s (Vec2 a b) = Vec2 (s * a) (s * b)
 
 toTuple :: Vec2 -> (Double,Double)
 toTuple (Vec2 x y) = (x,y)
+
+lerpV a b t = scalarMult (1 - t) a `plus` scalarMult t b
 {-
 
 type V2 = Position

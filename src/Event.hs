@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Event where
 
 import Types
@@ -21,11 +22,11 @@ getZone radius playerPos enemyPos =
             (False,False) -> LeftZone
             (True,True)   -> RightZone
 
-eventsStep :: Time -> [Key] -> Player -> Enemies -> Events -> Events
-eventsStep _ keys p e _ = getHits keys p e
+getHits Player{pact=a} = case a of
+  Flying{ .. } -> if flyElapsed >= flyDuration then [HitEnemy flyTo] else []
+  _            -> []
 
-
-getHits keys p e = if null keys then [] 
+getAttacks keys p e = if null keys || (pact p /= Waiting) then [] 
   else case head keys of
     UpKey    -> hit UpZone
     DownKey  -> hit DownZone
@@ -33,7 +34,7 @@ getHits keys p e = if null keys then []
     RightKey -> hit RightZone
     _        -> []
   where
-  hit z = fmap (HitEnemy . fst) $ filter ((z==) . snd) $ (targets p e)
+  hit z = fmap (AttackEnemy . fst) $ filter ((z==) . snd) $ (targets p e)
     
 targets :: Player -> Enemies -> [(Enemy, Zone)]
 targets Player{ppos=p, zoneRadius=zr} Enemies{list=elist} = concat

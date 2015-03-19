@@ -1,19 +1,32 @@
+{-# LANGUAGE RecordWildCards #-}
 module Player where
 
 import Types
 import Vector
 
 playerInit :: Player
-playerInit = Player '@' zero 100
+playerInit = Player '@' zero 100 Waiting
 
 playerStep :: Time -> Events -> Player -> Player
-playerStep dt events player = foldr handleEvent player events
+playerStep dt events player = 
+  handleEvents
+  . tick
+  $ player 
   where
+  handleEvents p = foldr handleEvent p events
   handleEvent :: Event -> Player -> Player
   handleEvent e p = case e of
-    HitEnemy Enemy{epos=t} -> p{ppos=t}
-    _                      -> p
-
+    AttackEnemy nme -> fly p nme 100
+    HitEnemy nme    -> p{pact = Waiting}
+    _               -> p
+  tick p = case (pact p) of
+    Flying{ .. } -> fly' p dt
+    _ -> p
     
 
- 
+fly p nme t = p{pact = Flying (ppos p) nme t 0}
+fly' p@Player{pact = a} dt = 
+  let elapsed' = flyElapsed a + dt
+      a' = a{flyElapsed = elapsed'}
+      pos' = lerpV (flyFrom a) (epos . flyTo $ a) (flyElapsed a / flyDuration a)
+  in  p{pact = a', ppos = pos'}

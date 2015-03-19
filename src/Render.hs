@@ -43,10 +43,10 @@ drawZones Player{..} = move (toTuple ppos)
   ]
   where
   f = (\t -> (zoneRadius * (cos t), zoneRadius * (sin t))) . (*pi)
-  range a b n = fmap (\t -> (1-(t/n))*a + (t/n) * b) [0..n]
   up =    range (5/4) (7/4) 30
   down =  range (1/4) (3/4) 30
   left =  range (3/4) (5/4) 30
   right = range (7/4) (9/4) 30
   path x = (0,0) : fmap f x
   pi = 3.14159265358979323
+  range a b n = fmap (lerp a b . (/n)) [0..n]
