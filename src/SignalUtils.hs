@@ -3,68 +3,42 @@ module SignalUtils where
 --This is stuff that helm should prolly provide
 --we can pick through it later for things to give them
 
-import FRP.Helm
-import FRP.Helm.Engine (Engine)
-import FRP.Helm.Sample (Sample(..), value)
-import FRP.Elerea.Param (transfer2)
-import qualified FRP.Elerea.Param as E
+import Random
+
+import FRP.Elerea.Param
 import Control.Applicative
+import Data.Time.Clock (getCurrentTime, diffUTCTime, NominalDiffTime)
+import Data.Fixed (mod')
+import Control.Monad.IO.Class (liftIO)
+import Data.Maybe (fromMaybe)
 
 
---This belongs in helm.sample
---suppresses the changed token in a sample
-quiet :: Sample a -> Sample a
-quiet = Unchanged . value
+accumMaybes :: a -> Signal (Maybe a) -> SignalGen p (Signal a)
+accumMaybes x s = transfer x f s
+  where f _ new old = fromMaybe old new
 
---These belong in helm.signal
---suppresses all changed tokens in a signal
-silence :: Signal a -> Signal a
-silence (Signal x) = Signal $ (fmap.fmap) quiet x
+-- This is true after t passes in SYSTEM TIME.
+timeTicks :: NominalDiffTime -> SignalGen p (Signal Bool)
+timeTicks t = do
+  start <- liftIO getCurrentTime
+  now <- effectful getCurrentTime
+  prev <- delay start now
+  (fmap.fmap) fst $ transfer (False,0) f (diffUTCTime <$> now <*> prev)
+  where
+  f _ delta (_,acc) = let acc' = delta + acc in
+    if acc' > t then (True,acc' `mod'` t) else (False,acc')
 
---Ignores all changes in the second signal until the first signal updates
-mask :: Signal a -> Signal b -> Signal b
-mask x y = maybe <~ (silence y) ~~ (pure id) ~~ yy
-  where
-    yy = maskAux x y
-unmask :: Signal a -> Signal b -> Signal b
-unmask = liftA2 $ flip const
+-- This is true after t passes in SUBJECTIVE SIM TIME
+-- It doesn't care about units as long as all appearances
+-- of 'a' in the signature are in the same unit.
+every :: Real a => a -> SignalGen a (Signal Bool)
+every t = (fmap.fmap) snd $ stateful (0,False) f
+  where 
+  f dt (acc,_) = let acc' = dt + acc in 
+    if acc' > t then (acc' - t, True) else (acc', False)
 
-maskAux :: Signal a -> Signal b -> Signal (Maybe b)
-maskAux (Signal x') (Signal y') = Signal $ do
-  x <- x'
-  y <- y'
-  transfer2 (Unchanged Nothing) f x y
-  where
-    f _ x@(Changed _) y _ = const <$> fmap Just y <*> x
-    f _ _             _ o = quiet o
+evalRandomSignal :: Rng -> Signal (Rand a) -> SignalGen p (Signal a)
+evalRandomSignal g s = effectful1 (withRng g) s
 
---foldp#' behaves like foldp for multiple signals
---except that the updates of input signals after the first one
---are masked by the first one.
-foldp2' :: (s -> t1 -> a -> a) -> a -> Signal s -> Signal t1 -> Signal a
-foldp2' f init s t = foldp f' init s'
-  where
-    s' = mask s $ lift2 (,) s t
-    f' (x1,x2) z = f x1 x2 z
-foldp3' :: (s -> t1 -> t2 -> a -> a) -> a -> Signal s -> Signal t1 -> Signal t2 -> Signal a
-foldp3' f init s t1 t2 = foldp f' init s'
-  where
-    s' = mask s $ lift3 (,,) s t1 t2
-    f' (x1,x2,x3) z = f x1 x2 x3 z
-foldp4' :: (s -> t1 -> t2 -> t3 -> a -> a)
-  -> a -> Signal s 
-  -> Signal t1 -> Signal t2 -> Signal t3 
-  -> Signal a
-foldp4' f init s t1 t2 t3 = foldp f' init s'
-  where
-    s' = mask s $ lift4 (,,,) s t1 t2 t3
-    f' (x1,x2,x3,x4) z = f x1 x2 x3 x4 z
-foldp5' :: (s -> t1 -> t2 -> t3 -> t4 -> a -> a)
-  -> a -> Signal s 
-  -> Signal t1 -> Signal t2 -> Signal t3 -> Signal t4
-  -> Signal a
-foldp5' f init s t1 t2 t3 t4 = foldp f' init s'
-  where
-    s' = mask s $ lift5 (,,,,) s t1 t2 t3 t4
-    f' (x1,x2,x3,x4,x5) z = f x1 x2 x3 x4 x5 z
-    
+elapsedGameTime = stateful 0 (+)
+

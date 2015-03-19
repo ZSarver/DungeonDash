@@ -6,9 +6,6 @@ import Control.Monad.State.Strict
 
 type Rand a = State StdGen a
 
--- Use this to feed random values into a function
--- Given f :: Double -> b
--- fmap f $ range (0,1) :: Rand b
 range :: Random a => (a,a) -> Rand a
 range r = do
   (x,g') <- fmap (randomR r) get
@@ -21,11 +18,8 @@ rand = do
   put g'
   return x
 
-feed :: StdGen -> Rand b -> (b,StdGen)
-feed g f = runState f g
-
 data Rng = Rng (TVar StdGen)
---This is a pointer to our prng. Using TVar so that if the FRP library
+--This is a pointer to our prng state. Using TVar so that if the FRP library
 -- tries to pull random numbers in parallel we won't repeat numbers.
 -- The STM library will force one of them to retry using the updated prng state.
 mkRng :: Int -> IO Rng
@@ -40,7 +34,7 @@ splitRng (Rng gen) = atomically $ do
 withRng :: Rng -> Rand b -> IO b
 withRng (Rng gen) f = atomically $ do
     g <- readTVar gen
-    let (result, g') = feed g f
+    let (result, g') = runState f g
     writeTVar gen g'
     return result
 

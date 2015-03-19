@@ -28,7 +28,10 @@ drawEnemy :: Enemy -> Form
 drawEnemy Enemy{..} = group $ h ++ [drawSymbol grey epos echar]
   where
   h = maybeToList $ move (toTuple epos) 
-      <$> liftA2 outlined (solid <$> highlight) (pure (circle 10))
+      -- <$> liftA2 outlined (solid <$> highlight) (pure (circle 10))
+      <$> liftA2 gradient (grd <$> highlight) (pure (circle 20))
+  grd c@(Color r g b a) = radial (0,0) 0 (0,0) 20 [(0, rgba r g b (0.6 * a)), (1, rgba r g b 0)]
+      
 
 drawPlayer :: Player -> Form
 drawPlayer Player{..} = drawSymbol white ppos pchar
@@ -38,7 +41,7 @@ drawZones Player{..} = move (toTuple ppos)
   $ group 
   [ filled (rgba 1 1 0 0.1) $ polygon (path up)
   , filled (rgba 0 1 0 0.1) $ polygon (path down)
-  , filled (rgba 0 0 1 0.06) $ polygon (path left)
+  , filled (rgba 0 0 1 0.1) $ polygon (path left)
   , filled (rgba 1 0 0 0.1) $ polygon (path right)
   ]
   where
@@ -48,5 +51,4 @@ drawZones Player{..} = move (toTuple ppos)
   left =  range (3/4) (5/4) 30
   right = range (7/4) (9/4) 30
   path x = (0,0) : fmap f x
-  pi = 3.14159265358979323
   range a b n = fmap (lerp a b . (/n)) [0..n]

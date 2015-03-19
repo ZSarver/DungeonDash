@@ -5,7 +5,7 @@ import Types
 import Vector
 
 playerInit :: Player
-playerInit = Player '@' zero 100 Waiting
+playerInit = Player '@' zero 150 Waiting
 
 playerStep :: Time -> Events -> Player -> Player
 playerStep dt events player = 
@@ -16,13 +16,12 @@ playerStep dt events player =
   handleEvents p = foldr handleEvent p events
   handleEvent :: Event -> Player -> Player
   handleEvent e p = case e of
-    AttackEnemy nme -> fly p nme 100
+    AttackEnemy nme -> fly p nme 80
     HitEnemy nme    -> p{pact = Waiting}
     _               -> p
   tick p = case (pact p) of
     Flying{ .. } -> fly' p dt
     _ -> p
-    
 
 fly p nme t = p{pact = Flying (ppos p) nme t 0}
 fly' p@Player{pact = a} dt = 

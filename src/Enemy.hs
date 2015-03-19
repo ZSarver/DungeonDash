@@ -57,7 +57,7 @@ stun e = e{estate = Stunned}
 enemyStep :: Time -> Player -> Enemy -> Enemy
 enemyStep dt Player{ppos=p} e@Enemy{epos=oldpos} = e{epos=newpos}
   where 
-  speed = 0.08
+  speed = 0.1
   space = 30
   newpos = chaseStep speed space dt p oldpos
 
