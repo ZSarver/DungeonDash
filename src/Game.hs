@@ -43,12 +43,12 @@ game seed = mdo
     , hits
     ]
   keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
-  enemies <- memo =<< transfer2 enemiesInit enemiesStep player events
-  player <- memo =<< transfer playerInit playerStep events
+  enemies <- transfer2 enemiesInit enemiesStep player events
+  player <- transfer playerInit playerStep events
   attacks <- delay eventsInit $ getAttacks <$> keys <*> player <*> enemies
   hits <- delay eventsInit $ getHits <$> player
   spawns <- evalRandomSignal rng =<< fmap spawnWhen (every 1000)
-  return $ liftA2 GameState player enemies
+  memo $ liftA2 GameState player enemies
 
 randomPosition :: Rand Position
 randomPosition = Vec2 <$> range (-500,500) <*> range (-500,500)
