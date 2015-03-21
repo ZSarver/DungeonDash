@@ -1,4 +1,4 @@
-module Random (Rng, Rand, mkRng, splitRng, withRng, rand, range ) where
+module Random (Rng, Rand, mkRng, splitRng, withRng, rand, range, filterRand ) where
 import System.Random --(Random, randomR, randomRIO,mkStdGen,randomIO, StdGen)
 import Control.Concurrent.STM
 import Control.Applicative
@@ -18,6 +18,12 @@ rand = do
   put g'
   return x
 
+filterRand :: (a -> Bool) -> Rand a -> Rand a
+filterRand f r = do
+  (x,g') <- fmap (runState r) get
+  put g'
+  if f x then return x else filterRand f r
+  
 data Rng = Rng (TVar StdGen)
 --This is a pointer to our prng state. Using TVar so that if the FRP library
 -- tries to pull random numbers in parallel we won't repeat numbers.

@@ -10,6 +10,7 @@ import Random
 import Event
 import Enemy (enemiesInit, enemiesStep)
 import Player (playerInit, playerStep)
+import Sfx
 
 import FRP.Elerea.Param
 import Control.Applicative
@@ -18,9 +19,8 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Time.Clock (NominalDiffTime)
 
 
-data GameState = GameState{ player :: Player, enemies :: Enemies }
-gameInit = GameState playerInit enemiesInit
-
+data GameState = GameState{ player :: Player, enemies :: Enemies, sfx :: Sfx }
+gameInit = GameState playerInit enemiesInit sfxInit
 
 --Arguments: game step resolution, game seed
 newGame :: NominalDiffTime -> Int -> SignalGen p (Signal GameState)
@@ -37,7 +37,10 @@ newGame dt seed = do
 game :: Int -> SignalGen Time (Signal GameState)
 game seed = mdo
   rng <- liftIO $ mkRng seed
-  events <- memo . fmap concat . sequenceA $ 
+  let attacks = getAttacks <$> keys <*> player <*> enemies
+      hits = getHits <$> player
+  spawns <- evalRandomSignal rng =<< liftA2 spawnWhen (every 1000) (pure player)
+  events <- delay eventsInit . fmap concat . sequenceA $ 
     [ attacks
     , spawns
     , hits
@@ -45,16 +48,18 @@ game seed = mdo
   keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
-  attacks <- delay eventsInit $ getAttacks <$> keys <*> player <*> enemies
-  hits <- delay eventsInit $ getHits <$> player
-  spawns <- evalRandomSignal rng =<< fmap spawnWhen (every 1000)
-  memo $ liftA2 GameState player enemies
+  sfx <- transfer3 sfxInit sfxStep player enemies events
+  memo $ liftA3 GameState player enemies sfx
 
 randomPosition :: Rand Position
-randomPosition = Vec2 <$> range (-500,500) <*> range (-500,500)
+randomPosition = Vec2 <$> range (-600,600) <*> range (-600,600)
 
-spawnWhen :: Signal Bool -> Signal (Rand [Event])
-spawnWhen s = fmap f s
+isOut :: Player -> Position -> Bool
+isOut Player{zoneRadius=r,ppos=p} here = distance p here > r
+
+spawnWhen :: Signal Bool -> Signal Player -> Signal (Rand [Event])
+spawnWhen s p =  f <$> s <*> p
   where
-  f True = (\p -> [SpawnEnemy p]) <$> randomPosition
-  f False = pure []
+  f True p = (\pos -> if isOut p pos then [SpawnEnemy pos] else []) <$> (randomPosition)
+  f False p = pure []
+
