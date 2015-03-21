@@ -17,7 +17,6 @@ swap (a,b) = (b,a)
 
 enemiesStep :: Time -> Player -> Events -> Enemies -> Enemies
 enemiesStep dt p events Enemies{list=elist} = Enemies 
-  $ (\e -> setHighlights ((fmap . fmap) zoneColors (targets p $ Enemies e)) e)
   $ fmap (enemyStep dt p) 
   $ filter (not.dead) 
   $ foldr handleEvent elist events
@@ -28,13 +27,6 @@ enemiesStep dt p events Enemies{list=elist} = Enemies
     AttackEnemy nme -> modifyBy (==nme) stun enemyList
     SpawnEnemy here -> insertEnemy (newEnemy here) enemyList
     _               -> enemyList
-
-setHighlights :: [(Enemy, Color)] -> [Enemy] -> [Enemy]
-setHighlights highlights es = fmap f es
-  where
-  f e = case find ((==e).fst) highlights of
-          Nothing    -> e{highlight = Nothing}
-          Just (_,c) -> e{highlight = Just c}
 
 insertEnemy :: (EnemyID -> Enemy) -> [Enemy] -> [Enemy]
 insertEnemy f list = insertEnemyAux 0 list
@@ -70,6 +62,6 @@ chaseStep :: Double -> Double -> Time -> Position -> Position -> Position
 chaseStep speed goalDistance time target start  = 
   if d > goalDistance then closer else start
   where 
-    vec = target `minus` start
+    vec = target ^-^ start
     d = distance start target
-    closer = start `plus` ((speed * time / d) `scalarMult` vec)
+    closer = start ^+^ ((speed * time / d) *^ vec)

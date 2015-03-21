@@ -15,7 +15,8 @@ main = do
   let game = helmify $ newGame 0.02 12345
       e = fmap enemies game
       p = fmap player game
-  run config $ refresh $ render 800 600 <~ p ~~ e
+      s = fmap sfx game
+  run config $ refresh $ render 800 600 <~ p ~~ e ~~ s
   where
     config = defaultConfig { windowTitle = "Dungeon Dash!", windowPosition = (200,200) }
     refresh s = const <~ s ~~ (fps 40)

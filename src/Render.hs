@@ -3,6 +3,7 @@ module Render where
 
 import Types
 import Vector
+import Sfx
 
 import FRP.Helm.Color
 import FRP.Helm.Text (text, color, toText)
@@ -12,8 +13,8 @@ import Data.Maybe (maybeToList)
 import Control.Applicative
 
 
-render :: Int -> Int -> Player -> Enemies -> Element
-render w' h' p e = centeredCollage w' h' $ [background, drawZones p, drawEnemies (ppos p) e, drawPlayer p]
+render :: Int -> Int -> Player -> Enemies -> Sfx -> Element
+render w' h' p e s = centeredCollage w' h' $ [background, draw s, drawZones p, drawEnemies (ppos p) e, drawPlayer p]
   where
   (w,h) = (fromIntegral w', fromIntegral h')
   background =  filled black $ rect w h
@@ -25,11 +26,15 @@ drawEnemies :: Position -> Enemies -> Form
 drawEnemies center = group . fmap (drawEnemy center) . list
 
 drawEnemy :: Position -> Enemy -> Form
-drawEnemy center Enemy{..} = group $ h ++ [drawSymbol grey (epos `minus` center) echar]
+drawEnemy center Enemy{..} = group $ l ++ h ++ [drawSymbol grey (epos ^-^ center) echar]
   where
-  h = maybeToList $ move (toTuple (epos `minus` center)) 
+  h = maybeToList $ move (toTuple (epos ^-^ center)) 
       -- <$> liftA2 outlined (solid <$> highlight) (pure (circle 10))
       <$> liftA2 gradient (grd <$> highlight) (pure (circle 20))
+  l = maybeToList $ 
+         liftA2 traced
+        (dashed <$> highlight)
+        (pure $ path [ toTuple zero, toTuple (epos ^-^ center)])
   grd c@(Color r g b a) = radial (0,0) 0 (0,0) 20 [(0, rgba r g b (0.6 * a)), (1, rgba r g b 0)]
       
 

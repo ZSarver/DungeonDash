@@ -29,5 +29,5 @@ fly p nme t = p{pact = Flying (ppos p) nme t 0}
 fly' p@Player{pact = a} dt = 
   let elapsed' = flyElapsed a + dt
       a' = a{flyElapsed = elapsed'}
-      pos' = lerpV (flyFrom a) (epos . flyTo $ a) (flyElapsed a / flyDuration a)
+      pos' = lerp (flyFrom a) (epos . flyTo $ a) (flyElapsed a / flyDuration a)
   in  p{pact = a', ppos = pos'}

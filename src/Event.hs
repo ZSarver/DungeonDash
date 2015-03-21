@@ -58,7 +58,7 @@ targets pl@Player{ppos=p, zoneRadius=zr} Enemies{list=elist} =
   zonebackups2 z = filter ((!! fromEnum z).four) . filter ((z/=).three) $ prep
   prep = sortBy (comparing two) . filter ((<= zr) . two) $ fmap f elist
   f :: Enemy -> (Enemy, Double, Zone, [Bool])
-  f nme@Enemy{epos=e} = let relpos@(Vec2 x y) = e `minus` p 
+  f nme@Enemy{epos=e} = let relpos@(Vec2 x y) = e ^-^ p 
                             u = x + y
                             v = x - y
                             d = distance relpos zero
