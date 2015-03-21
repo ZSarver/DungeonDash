@@ -13,7 +13,7 @@ import Control.Applicative
 
 
 render :: Int -> Int -> Player -> Enemies -> Element
-render w' h' p e = centeredCollage w' h' $ [background, drawZones p, drawEnemies e, drawPlayer p]
+render w' h' p e = centeredCollage w' h' $ [background, drawZones p, drawEnemies (ppos p) e, drawPlayer p]
   where
   (w,h) = (fromIntegral w', fromIntegral h')
   background =  filled black $ rect w h
@@ -21,24 +21,24 @@ render w' h' p e = centeredCollage w' h' $ [background, drawZones p, drawEnemies
 drawSymbol ::  Color -> Vec2 -> Char -> Form
 drawSymbol c v a = move (toTuple v) . toForm . text . color c . toText $ [a]
 
-drawEnemies :: Enemies -> Form
-drawEnemies = group . fmap drawEnemy . list
+drawEnemies :: Position -> Enemies -> Form
+drawEnemies center = group . fmap (drawEnemy center) . list
 
-drawEnemy :: Enemy -> Form
-drawEnemy Enemy{..} = group $ h ++ [drawSymbol grey epos echar]
+drawEnemy :: Position -> Enemy -> Form
+drawEnemy center Enemy{..} = group $ h ++ [drawSymbol grey (epos `minus` center) echar]
   where
-  h = maybeToList $ move (toTuple epos) 
+  h = maybeToList $ move (toTuple (epos `minus` center)) 
       -- <$> liftA2 outlined (solid <$> highlight) (pure (circle 10))
       <$> liftA2 gradient (grd <$> highlight) (pure (circle 20))
   grd c@(Color r g b a) = radial (0,0) 0 (0,0) 20 [(0, rgba r g b (0.6 * a)), (1, rgba r g b 0)]
       
 
 drawPlayer :: Player -> Form
-drawPlayer Player{..} = drawSymbol white ppos pchar
+drawPlayer Player{..} = drawSymbol white zero pchar
 
 drawZones :: Player -> Form
-drawZones Player{..} = move (toTuple ppos)
-  $ group 
+drawZones Player{..} = --move (toTuple ppos)
+  group 
   [ gradient (grd yellow) $ polygon (path up)
   , gradient (grd green) $ polygon (path down)
   , gradient (grd blue) $ polygon (path left)
