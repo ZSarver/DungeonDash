@@ -18,6 +18,9 @@ import Data.Traversable (sequenceA)
 import Control.Monad.IO.Class (liftIO)
 import Data.Time.Clock (NominalDiffTime)
 
+--DEBUG SHIT KILL LATER
+import GHC.Stack (errorWithStackTrace)
+
 
 data GameState = GameState{ player :: Player, enemies :: Enemies, sfx :: Sfx }
 gameInit = GameState playerInit enemiesInit sfxInit
@@ -44,12 +47,19 @@ game seed = mdo
     [ attacks
     , spawns
     , hits
+    , debug
     ]
   keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
   enemies <- transfer2 enemiesInit enemiesStep player events
   player <- transfer playerInit playerStep events
   sfx <- transfer3 sfxInit sfxStep player enemies events
+  debug <- transfer [] debugfun keys
   memo $ liftA3 GameState player enemies sfx
+  
+debugfun :: Time -> [Key] -> [Event] -> [Event]
+debugfun t ks es = if SpaceKey `elem` ks 
+                   then errorWithStackTrace "boop"
+                   else []
 
 randomPosition :: Rand Position
 randomPosition = Vec2 <$> range (-600,600) <*> range (-600,600)
