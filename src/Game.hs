@@ -20,10 +20,19 @@ import Data.Time.Clock (NominalDiffTime)
 
 --DEBUG SHIT KILL LATER
 import GHC.Stack (errorWithStackTrace)
+import System.Random (Random, random, randomR)
 
+instance Random Key where
+  random g = let (i,g') = randomR (0,3) g in ([UpKey,DownKey,LeftKey,RightKey] !! i, g')
+  randomR _ g = random g
 
-data GameState = GameState{ player :: Player, enemies :: Enemies, sfx :: Sfx }
+data GameState = GameState{ player :: !Player, enemies :: !Enemies, sfx :: !Sfx }
 gameInit = GameState playerInit enemiesInit sfxInit
+
+rkey :: Rand Key
+rkey = fmap ([UpKey,DownKey,LeftKey,RightKey] !!) $ range (0,3)
+rkeys :: Signal (Rand [Key])
+rkeys = pure . fmap pure $ rkey
 
 --Arguments: game step resolution, game seed
 newGame :: NominalDiffTime -> Int -> SignalGen p (Signal GameState)
@@ -39,21 +48,21 @@ newGame dt seed = do
 
 game :: Int -> SignalGen Time (Signal GameState)
 game seed = mdo
-  rng <- liftIO $ mkRng seed
+  let rng = mkStdGen seed
+  player <- transfer playerInit playerStep events
+  enemies <- transfer2 enemiesInit enemiesStep player events
+  keys <- evalRandomSignal rng rkeys -- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
+  spawns <- evalRandomSignal rng =<< liftA2 spawnWhen (every 500) (pure player)
   let attacks = getAttacks <$> keys <*> player <*> enemies
       hits = getHits <$> player
-  spawns <- evalRandomSignal rng =<< liftA2 spawnWhen (every 1000) (pure player)
+--  debug <- transfer [] debugfun keys
   events <- delay eventsInit . fmap concat . sequenceA $ 
     [ attacks
     , spawns
     , hits
-    , debug
+--    , debug
     ]
-  keys <- keyDownEvents [UpKey,DownKey,LeftKey,RightKey,SpaceKey]
-  enemies <- transfer2 enemiesInit enemiesStep player events
-  player <- transfer playerInit playerStep events
   sfx <- transfer3 sfxInit sfxStep player enemies events
-  debug <- transfer [] debugfun keys
   memo $ liftA3 GameState player enemies sfx
   
 debugfun :: Time -> [Key] -> [Event] -> [Event]
@@ -62,7 +71,7 @@ debugfun t ks es = if SpaceKey `elem` ks
                    else []
 
 randomPosition :: Rand Position
-randomPosition = Vec2 <$> range (-600,600) <*> range (-600,600)
+randomPosition = Vec2 <$> range (-1000,1000) <*> range (-1000,1000)
 
 isOut :: Player -> Position -> Bool
 isOut Player{zoneRadius=r,ppos=p} here = distance p here > r

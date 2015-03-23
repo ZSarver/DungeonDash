@@ -7,7 +7,7 @@ import Vector
 playerInit :: Player
 playerInit = Player '@' zero 150 Waiting
 
-flySpeed = 1
+flySpeed = 0.4
 
 playerStep :: Time -> Events -> Player -> Player
 playerStep dt events player = 

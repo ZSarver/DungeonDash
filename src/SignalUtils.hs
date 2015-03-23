@@ -8,6 +8,7 @@ import Data.Time.Clock (getCurrentTime, diffUTCTime, NominalDiffTime)
 import Data.Fixed (mod')
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (fromMaybe)
+import Control.Monad.State.Strict
 
 
 accumMaybes :: a -> Signal (Maybe a) -> SignalGen p (Signal a)
@@ -35,7 +36,9 @@ every t = (fmap.fmap) snd $ stateful (0,False) f
     if acc' > t then (acc' - t, True) else (acc', False)
 
 evalRandomSignal :: Rng -> Signal (Rand a) -> SignalGen p (Signal a)
-evalRandomSignal g s = effectful1 (withRng g) s
+evalRandomSignal g s = (fmap.fmap) fst $ transfer (undefined,g) f s
+  where
+  f _ r (_,gen) = runState r gen
 
 elapsedGameTime = stateful 0 (+)
 

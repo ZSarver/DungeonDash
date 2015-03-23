@@ -1,4 +1,4 @@
-module Random (Rng, Rand, mkRng, splitRng, withRng, rand, range, filterRand ) where
+module Random (Rng, Rand, rand, range, filterRand,mkStdGen ) where
 import System.Random --(Random, randomR, randomRIO,mkStdGen,randomIO, StdGen)
 import Control.Concurrent.STM
 import Control.Applicative
@@ -24,24 +24,4 @@ filterRand f r = do
   put g'
   if f x then return x else filterRand f r
   
-data Rng = Rng (TVar StdGen)
---This is a pointer to our prng state. Using TVar so that if the FRP library
--- tries to pull random numbers in parallel we won't repeat numbers.
--- The STM library will force one of them to retry using the updated prng state.
-mkRng :: Int -> IO Rng
-mkRng i = atomically . fmap Rng . newTVar $ mkStdGen i
-
-splitRng :: Rng -> IO Rng
-splitRng (Rng gen) = atomically $ do
-  (g1,g2) <- fmap split $ readTVar gen
-  writeTVar gen g1
-  fmap Rng $ newTVar g2
-
-withRng :: Rng -> Rand b -> IO b
-withRng (Rng gen) f = atomically $ do
-    g <- readTVar gen
-    let (result, g') = runState f g
-    writeTVar gen g'
-    return result
-
-                      
+type Rng = StdGen
