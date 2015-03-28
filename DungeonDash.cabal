@@ -28,5 +28,6 @@ executable DungeonDash
                      , transformers == 0.3.0.0
                      , time == 1.4.2
                      , vector-space == 0.9
+                     , sdl2 >= 1.3 && <1.4
   hs-source-dirs:      src
   default-language:    Haskell2010

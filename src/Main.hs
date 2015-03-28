@@ -1,6 +1,7 @@
 
 import Game (newGame, GameState(..))
 import Render
+import Graphics hiding (render)
 
 import FRP.Helm hiding (Time)
 import FRP.Helm.Time(fps)
