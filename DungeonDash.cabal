@@ -17,6 +17,7 @@ cabal-version:       >=1.10
 
 executable DungeonDash
   main-is:             Main.hs
+  default-extensions: RecordWildCards
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8
