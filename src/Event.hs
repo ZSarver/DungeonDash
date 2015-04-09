@@ -43,7 +43,7 @@ getAttacks keys p e = if null keys || (pact p /= Waiting) then []
 -- 5) If we still have unfilled zones, fill them with the closes eligible enemy.
 --There is probably a smarter way to do this.
 targets :: Player -> Enemies -> [(Enemy, Zone)]
-targets pl@Player{ppos=p, zoneRadius=zr} Enemies{list=elist} =
+targets pl@Player{ppos=p, zoneRadius=zr} elist =
     (fmap.map1) fromJust
   $ filter ((/=Nothing) . fst) 
   $ flip zip zones 

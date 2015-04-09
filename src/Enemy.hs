@@ -11,13 +11,13 @@ modifyBy _ _ [] = []
 modifyBy test f (x:xs) = (if test x then f x else x) : modifyBy test f xs
 
 enemiesInit :: Enemies
-enemiesInit = Enemies []
+enemiesInit = []
 
 swap (a,b) = (b,a)
 
 enemiesStep :: Time -> Player -> Events -> Enemies -> Enemies
-enemiesStep dt p events Enemies{list=elist} = Enemies 
-  $ fmap (enemyStep dt p) 
+enemiesStep dt p events elist = 
+  fmap (enemyStep dt p) 
   $ filter (not.dead) 
   $ foldr handleEvent elist events
   where
@@ -56,7 +56,7 @@ enemyStep dt Player{ppos=p} e@Enemy{epos=oldpos} = case estate e of
   space = 30
   newpos = chaseStep speed space dt p oldpos
 
-newEnemy pos eid = Enemy 'k' pos Alive eid Nothing
+newEnemy pos eid = Enemy "somefilename" pos Alive eid Nothing
 
 chaseStep :: Double -> Double -> Time -> Position -> Position -> Position
 chaseStep speed goalDistance time target start  = 

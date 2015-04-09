@@ -5,7 +5,7 @@ import Types
 import Vector
 
 playerInit :: Player
-playerInit = Player '@' zero 150 Waiting
+playerInit = Player "some filepath" zero 150 Waiting
 
 flySpeed = 0.4
 

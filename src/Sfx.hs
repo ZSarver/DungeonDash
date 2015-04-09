@@ -7,7 +7,7 @@ import Vector
 import FRP.Helm.Graphics
 import FRP.Helm.Color
 
-data Sfx = Sfx { draw :: !Form
+data Sfx = Sfx { sfxdraw :: !Form
                , sfxt :: !Time
                }
                
@@ -16,11 +16,11 @@ sfxInit = Sfx emptyForm 0
 emptyForm = group []
 
 sfxStep :: Time -> Player -> Enemies -> Events -> Sfx -> Sfx
-sfxStep dt pl e@Enemies{list=nmes} _ Sfx{sfxt = sfxt} = Sfx{draw = toDraw, sfxt = t'}
+sfxStep dt pl nmes _ Sfx{sfxt = sfxt} = Sfx{sfxdraw = toDraw, sfxt = t'}
   where
   t' = dt + sfxt
   f (e,z) = zoneLine z (epos e ^-^ ppos pl)
-  toDraw = group $ fmap f $ targets pl e
+  toDraw = group $ fmap f $ targets pl nmes
 
 zoneLine :: Zone -> Position -> Form
 zoneLine z p = traced (dashed $ zoneColor z) zoneArc

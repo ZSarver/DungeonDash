@@ -75,7 +75,7 @@ randomPosition = Vec2 <$> range (-1000,1000) <*> range (-1000,1000)
 
 isOut :: Player -> Position -> Bool
 isOut Player{zoneRadius=r,ppos=p} here = distance p here > r
-
+            
 spawnWhen :: Signal Bool -> Signal Player -> Signal (Rand [Event])
 spawnWhen s p =  f <$> s <*> p
   where
