@@ -1,5 +1,5 @@
 module SignalUtils where
-
+{-
 import Random
 
 import FRP.Elerea.Param
@@ -42,3 +42,4 @@ evalRandomSignal g s = (fmap.fmap) fst $ transfer (undefined,g) f s
 
 elapsedGameTime = stateful 0 (+)
 
+-}

@@ -2,9 +2,15 @@ module Types where
 
 import Vector
 import Keyboard (Key(..))
-import FRP.Helm.Color (rgba, Color, yellow, red, blue, green)
+--import FRP.Helm.Color (rgba, Color, yellow, red, blue, green)
 import Graphics.UI.SDL.Types (Texture (..), Rect (..))
 import Foreign.Ptr (Ptr(..))
+
+
+--
+data Color = Color
+--
+
 
 type Time = Double
 type Image = FilePath

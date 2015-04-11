@@ -10,9 +10,8 @@ import Random
 import Event
 import Enemy (enemiesInit, enemiesStep)
 import Player (playerInit, playerStep)
-import Sfx
 
-import FRP.Elerea.Param
+--import FRP.Elerea.Param
 import Control.Applicative
 import Data.Traversable (sequenceA)
 import Control.Monad.IO.Class (liftIO)
@@ -26,11 +25,15 @@ instance Random Key where
   random g = let (i,g') = randomR (0,3) g in ([UpKey,DownKey,LeftKey,RightKey] !! i, g')
   randomR _ g = random g
 
-data GameState = GameState{ player :: !Player, enemies :: !Enemies, sfx :: !Sfx }
-gameInit = GameState playerInit enemiesInit sfxInit
+data GameState = GameState{ player :: !Player, enemies :: !Enemies }
+gameInit = GameState playerInit enemiesInit
 
 rkey :: Rand Key
 rkey = fmap ([UpKey,DownKey,LeftKey,RightKey] !!) $ range (0,3)
+
+newGame = undefined
+
+{-
 rkeys :: Signal (Rand [Key])
 rkeys = pure . fmap pure $ rkey
 
@@ -82,3 +85,4 @@ spawnWhen s p =  f <$> s <*> p
   f True p = (\pos -> if isOut p pos then [SpawnEnemy pos] else []) <$> (randomPosition)
   f False p = pure []
 
+-}

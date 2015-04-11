@@ -1,5 +1,5 @@
 module Sfx where
-
+{-
 import Types
 import Event
 import Vector
@@ -39,3 +39,4 @@ directions = [ Vec2 0 (-1), Vec2 0 1, Vec2 (-1) 0, Vec2 1 0]
 interpolate2 start start' end t = (2*t*(1-t)) *^ start'
                               ^+^ (1-t**2)    *^ start
                               ^+^ (t**2)      *^ end
+-}

@@ -4,7 +4,7 @@ module Graphics where
 import Types
 import Vector
 import Graphics.UI.SDL.Types hiding (Texture)
-import qualified Graphics.UI.SDL.Types as SDL
+import qualified Graphics.UI.SDL as SDL
 import Graphics.UI.SDL.Enum (RendererFlip)
 import Graphics.UI.SDL.Video (renderClear, renderCopyEx, renderPresent, loadBMP, createTextureFromSurface)
 import Foreign.Ptr (Ptr(..))

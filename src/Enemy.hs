@@ -4,7 +4,7 @@ import Types
 import Vector
 import Event (targets)
 import Data.List (find)
-import FRP.Helm.Color (Color)
+--import FRP.Helm.Color (Color)
 
 modifyBy :: (a -> Bool) -> (a -> a) -> [a] -> [a]
 modifyBy _ _ [] = []

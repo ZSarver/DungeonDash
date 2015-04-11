@@ -2,8 +2,13 @@
 import Game (newGame, GameState(..))
 import Render
 import Graphics
-
-
+import qualified Graphics.UI.SDL as SDL
+import Data.Bits ((.|.))
+import Control.Auto (arrM, Auto (..))
+import Control.Auto.Run (run)
+import Control.Concurrent.MVar
+import Foreign.C (withCAString)
+import Data.Map (fromList, Map(..))
 {-main = do
   let game = helmify $ newGame 0.02 12345
       e = fmap enemies game
@@ -16,8 +21,7 @@ import Graphics
 -}
 
 gameloop :: Auto IO () ()
-gameloop = arrM do
-  gameshit
+gameloop = arrM undefined
   
 checkQuit :: () -> IO (Maybe ())
 checkQuit _ = fmap f SDL.quitRequested
@@ -25,11 +29,10 @@ checkQuit _ = fmap f SDL.quitRequested
   f True = Nothing
   f False = Just ()
   
-main = do
-  withCAString "Dungeon Dash!" $ \title -> do
+main = withCAString "Dungeon Dash!" $ \title -> do
   window <- SDL.createWindow title 100 100 800 600 wflags
   renderer <- SDL.createRenderer window (-1) rflags
-  texstore <- newMVar $ fromList []
+  texstore <- newMVar (fromList [] :: Map String Texture)
   
   run (return ()) checkQuit gameloop
   where
