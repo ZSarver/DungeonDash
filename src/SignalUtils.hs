@@ -1,17 +1,39 @@
 module SignalUtils where
-{-
-import Random
 
-import FRP.Elerea.Param
+--import Random
+
+-- import FRP.Elerea.Param
 import Control.Applicative
 import Data.Time.Clock (getCurrentTime, diffUTCTime, NominalDiffTime)
 import Data.Fixed (mod')
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (fromMaybe)
 import Control.Monad.State.Strict
+import Control.Auto
+import Data.IORef (readIORef, writeIORef, newIORef)
+import Prelude hiding ((.), id)
 
-
-accumMaybes :: a -> Signal (Maybe a) -> SignalGen p (Signal a)
+timeTicks :: NominalDiffTime -> IO (Auto IO a (Blip ()))
+timeTicks dt = do
+  start <- getCurrentTime
+  t <- newIORef start
+  accum <- newIORef 0
+  let f = do
+        now <- getCurrentTime
+        prev <- readIORef t
+        acc <- readIORef accum
+        writeIORef t now
+        let acc' = acc + diffUTCTime now prev
+        if acc' > dt
+        then do
+          writeIORef accum (acc' `mod'` dt)
+          return $ Just ()
+        else do
+          writeIORef accum acc'
+          return Nothing
+  return $ emitJusts id . effect f
+  
+{-accumMaybes :: a -> Signal (Maybe a) -> SignalGen p (Signal a)
 accumMaybes x s = transfer x f s
   where f _ new old = fromMaybe old new
 

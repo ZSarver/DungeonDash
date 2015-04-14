@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE RecursiveDo, RankNTypes #-}
 module Game where
 
 import Keyboard (keyDownEvents, Key( .. ))
@@ -16,6 +16,9 @@ import Control.Applicative
 import Data.Traversable (sequenceA)
 import Control.Monad.IO.Class (liftIO)
 import Data.Time.Clock (NominalDiffTime)
+import Control.Monad.State
+import Control.Monad.Identity
+
 
 --DEBUG SHIT KILL LATER
 import GHC.Stack (errorWithStackTrace)
@@ -32,6 +35,56 @@ rkey :: Rand Key
 rkey = fmap ([UpKey,DownKey,LeftKey,RightKey] !!) $ range (0,3)
 
 newGame = undefined
+
+
+
+type Lens a b = forall f. Functor f => (b -> f b) -> a -> f a
+class Embed s where
+  lens :: Lens GameState s
+
+view :: Lens a b -> a -> b
+view l = getConst . l Const
+set :: Lens a b -> a -> b -> a  
+set l = l const
+
+hoistState :: Lens s s' -> (forall a . State s' a -> State s a)
+hoistState l = \x -> StateT $ \g -> 
+  let (result, x') = runState x (view l g) 
+  in Identity (result, set l g x')
+
+  
+--hoist :: Auto (State s') a b -> Auto (State s) a b
+--hoist = hoistA (hoistState lens)
+
+
+--stepGame :: Auto (State GameState) a GameState 
+--stepGame = undefined {-
+
+
+
+{-
+arrM $ do
+  GameState player enemies <- get
+  stepAuto (hoist playerStep) (time,events)
+  stepAuto (hoist enemyStep) (...)
+  stepAuto (hoist eventsStep) (...)
+  
+  
+
+
+
+  
+-}
+
+--State s t "=" s -> ((),s)
+--playerStep "::" Time -> Events -> State Player ()
+-- playerAuto :: Auto (State Player) (Time,Events) ()
+-- playerLens :: Lens GameState Player
+-- hoistA (hoistState playerLens) :: Auto (State Player) a b -> Auto (State GameState) a b
+-- hoistA (hoistState playerLens) playerAuto :: Auto (State GameState) (Time, Events) ()
+
+
+--transferAuto :: (a -> b -> b) -> Auto m 
 
 {-
 rkeys :: Signal (Rand [Key])
