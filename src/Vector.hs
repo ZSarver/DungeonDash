@@ -1,9 +1,13 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies, DeriveGeneric #-}
 module Vector ((^-^),(^+^),(*^),zero,Vec2(..),toTuple,Position, distance, lerp) where
 import System.Random (Random, random, randomR)
 import Data.VectorSpace
+import GHC.Generics (Generic)
+import Data.Serialize (Serialize)
 
-data Vec2 = Vec2 !Double !Double deriving (Eq)
+data Vec2 = Vec2 !Double !Double deriving (Eq, Generic)
+instance Serialize Vec2
+
 type Position = Vec2
 
 instance Random Vec2 where
