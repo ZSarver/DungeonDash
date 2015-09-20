@@ -10,6 +10,7 @@ cabal-dev
 cabal.sandbox.config
 cabal.config
 *.lnk
+.stack-work/
 
 # =========================
 # Operating System Files
